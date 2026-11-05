@@ -1,3 +1,14 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#eef0f3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111318" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Panier Salon">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}html{-webkit-text-size-adjust:100%}</style>
 <title>Panier Salon Cybex</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -95,8 +106,8 @@ details.cat[open]>summary .chev{transform:rotate(90deg)}
 .cart-h .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .cart-h h2{margin:0;font-family:var(--f-display);font-size:20px}
 .cart-h input{width:100%;height:40px;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:0 12px}
-.seg{display:inline-grid;grid-auto-flow:column;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
-.seg button{border:0;background:transparent;border-radius:7px;padding:6px 12px;font-weight:700;font-size:14px;color:var(--muted)}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{border:0;background:transparent;border-radius:7px;padding:8px 6px;font-weight:700;font-size:14px;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
 .lines{flex:1;overflow-y:auto;padding:4px 18px;padding-right:max(18px,env(safe-area-inset-right,0px))}
 .line{padding:12px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px}
@@ -138,6 +149,7 @@ details.cat[open]>summary .chev{transform:rotate(90deg)}
 .orow .val{font-weight:700;color:var(--sale);white-space:nowrap}
 .note{font-size:13px;padding:10px 12px;border-radius:10px;background:var(--surface-2);color:var(--muted)}
 
+.closecart{display:none!important}
 @media (max-width:900px){
   .app{grid-template-columns:1fr}
   .main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-bottom:96px}
@@ -148,12 +160,46 @@ details.cat[open]>summary .chev{transform:rotate(90deg)}
   .mobilebar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:15;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:var(--surface);border-top:1px solid var(--line)}
   .mobilebar button{flex:1;height:50px;border:0;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:16px;display:flex;justify-content:space-between;align-items:center;padding:0 16px}
   .closecart{display:inline-flex!important}
-  .toast{bottom:calc(86px + env(safe-area-inset-bottom,0px));max-width:calc(100% - 32px)}
+  .toast{bottom:auto;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%) translateY(-20px);max-width:calc(100% - 32px);z-index:60}
 }
-.closecart{display:none!important}
+@media (max-width:600px){
+  body{font-size:15px}
+  .top{padding-block:10px 10px;gap:10px}
+  .brand{font-size:19px}
+  .brand small{display:none}
+  #openOffers{padding:7px 10px;font-size:13px}
+  .filters{gap:8px}
+  .field input,.field select{height:44px;font-size:16px}
+  .field select{font-size:15px;padding-left:12px}
+  .gamme{margin-top:18px}
+  .gamme-h h2{font-size:21px}
+  details.cat>summary{padding:12px 0;font-size:16px}
+  .grid{grid-template-columns:1fr;gap:10px}
+  .card{padding:12px;gap:8px;border-radius:12px}
+  .card .meta .tag{display:none}
+  .card .meta:empty{display:none}
+  .card h3{font-size:15px}
+  .sw{width:32px;height:32px}
+  .net{font-size:18px}
+  .add{height:44px;padding:0 16px}
+  .cart{height:92%;height:92dvh}
+  .cart-h,.lines,.totals{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .cart-h input{height:44px;font-size:16px}
+  .line select{height:36px;font-size:16px;flex:1;min-width:0}
+  .qty button{width:38px;height:36px}
+  .x{margin-left:0}
+  .tot.big{font-size:20px}
+  .actions .btn{padding:11px 10px;font-size:14px}
+  .form .two{grid-template-columns:1fr}
+  .form select,.form input,#oq{font-size:16px}
+  .orow{grid-template-columns:minmax(0,1fr) auto}
+  .orow .btn{grid-column:1/-1;justify-self:start;padding:6px 0}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
+</head>
+<body>
 <div class="app">
   <main class="main">
     <div class="top">
@@ -193,15 +239,13 @@ details.cat[open]>summary .chev{transform:rotate(90deg)}
     <div class="cart-h">
       <div class="row">
         <h2>Panier</h2>
-        <div style="display:flex;gap:8px;align-items:center">
-          <div class="seg" role="group" aria-label="Remise du panier" id="pctSeg">
-            <button type="button" data-p="0">0 %</button>
-            <button type="button" data-p="10">−10 %</button>
-            <button type="button" data-p="15">−15 %</button>
-            <button type="button" data-p="20">−20 %</button>
-          </div>
-          <button class="btn ghost closecart" id="closeCart" type="button" aria-label="Fermer le panier">✕</button>
-        </div>
+        <button class="btn ghost closecart" id="closeCart" type="button" aria-label="Fermer le panier">Fermer</button>
+      </div>
+      <div class="seg" role="group" aria-label="Remise du panier" id="pctSeg">
+        <button type="button" data-p="0">0 %</button>
+        <button type="button" data-p="10">−10 %</button>
+        <button type="button" data-p="15">−15 %</button>
+        <button type="button" data-p="20">−20 %</button>
       </div>
       <input id="client" type="text" placeholder="Nom du client (facultatif)" autocomplete="off">
     </div>
@@ -363,7 +407,7 @@ function renderCart(){
   } else {
     $("lines").innerHTML = cart.lines.map((l,i)=>{
       const {m,v}=BYREF[l.r]; const o=offers[l.r]; const u=unitPrice(l.r,l.mode);
-      const autoLbl = o ? "Offre salon ("+offerLabel(o)+")" : "Remise panier (−"+cart.pct+" %)";
+      const autoLbl = o ? "Offre : "+offerLabel(o) : "Panier −"+cart.pct+" %";
       return `<div class="line">
         <div><div class="nm">${esc(m.n)}</div><div class="sub">${v.d?esc(v.d)+" · ":""}<span class="mono">${v.r}</span> · ${GAMMES[m.g]}</div></div>
         <div class="lp"><div class="full num">${u<v.p?fmt(v.p*l.q):""}</div><div class="net num ${u<v.p?"sale":""}" style="font-size:16px">${fmt(r2(u*l.q))}</div>${l.q>1?`<div class="sub num">${fmt(u)} / u.</div>`:""}</div>
@@ -504,3 +548,6 @@ $("syncNote").textContent = "Offres enregistrées sur cet appareil uniquement.";
   }catch(e){}
 })();
 </script>
+
+</body>
+</html>
