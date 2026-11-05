@@ -1,0 +1,506 @@
+<title>Panier Salon Cybex</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: catalogue à gauche (filtres + cartes modèles), panier fixe à droite ; sur téléphone le panier devient un volet en bas. */
+:root{
+  --bg:#eef0f3; --surface:#ffffff; --surface-2:#f6f7f9; --ink:#14161b; --muted:#646a78; --line:#dde0e6;
+  --accent:#1c2b4a; --accent-ink:#ffffff; --sale:#b23a2e; --ok:#2f7a4f;
+  --plat:#8b93a3; --plat-bg:#e7e9ee; --gold:#a57d2c; --gold-bg:#f4ead3; --cbx:#14161b; --cbx-bg:#e3e4e7;
+  --shadow:0 1px 2px rgba(20,22,27,.06),0 4px 16px rgba(20,22,27,.06);
+  --f-display:"Bricolage Grotesque","Figtree",system-ui,sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111318; --surface:#1a1d24; --surface-2:#22262f; --ink:#eceef2; --muted:#9aa1b0; --line:#2e333d;
+  --accent:#c9d6f2; --accent-ink:#111318; --sale:#ff8a7a; --ok:#6fcf97;
+  --plat:#b7bfcf; --plat-bg:#2a2f39; --gold:#e0b862; --gold-bg:#332a17; --cbx:#eceef2; --cbx-bg:#2a2d33;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111318; --surface:#1a1d24; --surface-2:#22262f; --ink:#eceef2; --muted:#9aa1b0; --line:#2e333d;
+  --accent:#c9d6f2; --accent-ink:#111318; --sale:#ff8a7a; --ok:#6fcf97;
+  --plat:#b7bfcf; --plat-bg:#2a2f39; --gold:#e0b862; --gold-bg:#332a17; --cbx:#eceef2; --cbx-bg:#2a2d33;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25); color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--f-mono);font-size:.82em;letter-spacing:.01em}
+
+.app{display:grid;grid-template-columns:minmax(0,1fr) 400px;height:100%}
+.main{overflow-y:auto;min-width:0;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:20px;padding-block:0 40px}
+.top{position:sticky;top:0;z-index:5;background:var(--bg);padding-block:16px 12px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--line)}
+.brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--f-display);font-weight:700;font-size:22px;letter-spacing:-.01em;display:flex;align-items:baseline;gap:10px}
+.brand small{font-family:var(--f-body);font-weight:500;font-size:13px;color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 14px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:8px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--sale)}
+.filters{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr);gap:10px}
+.field{position:relative}
+.field input,.field select{width:100%;height:46px;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:0 14px;font-size:15px}
+.field input{padding-left:40px}
+.field svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.field select{appearance:none;padding-right:34px;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+.field .clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:var(--surface-2);border-radius:8px;width:30px;height:30px;color:var(--muted)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+.gamme{margin-top:28px}
+.gamme-h{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.gamme-h h2{font-family:var(--f-display);font-weight:700;font-size:26px;margin:0;letter-spacing:-.01em}
+.tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:4px 8px;border-radius:6px}
+.tag.platinum{background:var(--plat-bg);color:var(--plat)}
+.tag.gold{background:var(--gold-bg);color:var(--gold)}
+.tag.cbx{background:var(--cbx-bg);color:var(--cbx)}
+details.cat{border-top:1px solid var(--line)}
+details.cat>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;padding:14px 2px;cursor:pointer;font-weight:700;font-size:17px}
+details.cat>summary::-webkit-details-marker{display:none}
+details.cat>summary .count{font-weight:500;color:var(--muted);font-size:13px;margin-left:8px}
+details.cat>summary .chev{transition:transform .15s;color:var(--muted)}
+details.cat[open]>summary .chev{transform:rotate(90deg)}
+.sub-h{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:6px 0 10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-bottom:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card h3{margin:0;font-size:15.5px;font-weight:700;line-height:1.3;text-wrap:balance}
+.card .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.badge{font-size:11px;font-weight:700;padding:3px 7px;border-radius:6px;text-transform:uppercase;letter-spacing:.05em}
+.badge.new{background:var(--surface-2);color:var(--ink);border:1px solid var(--line)}
+.badge.offer{background:var(--sale);color:#fff}
+.swatches{display:flex;gap:6px;flex-wrap:wrap}
+.sw{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);padding:0;position:relative;background-clip:padding-box}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
+.design{font-size:13px;color:var(--muted);min-height:18px}
+.design b{color:var(--ink);font-weight:600}
+.pricerow{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-top:auto}
+.prices{display:flex;flex-direction:column}
+.full{color:var(--muted);text-decoration:line-through;font-size:13px}
+.net{font-weight:700;font-size:19px;font-family:var(--f-display)}
+.net.sale{color:var(--sale)}
+.add{border:0;background:var(--accent);color:var(--accent-ink);border-radius:10px;height:40px;padding:0 14px;font-weight:700;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.add.done{background:var(--ok)}
+.empty{padding:40px 10px;text-align:center;color:var(--muted)}
+
+.cart{background:var(--surface);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0;height:100%}
+.cart-h{padding:16px 18px 12px;padding-right:max(18px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.cart-h .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cart-h h2{margin:0;font-family:var(--f-display);font-size:20px}
+.cart-h input{width:100%;height:40px;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:0 12px}
+.seg{display:inline-grid;grid-auto-flow:column;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{border:0;background:transparent;border-radius:7px;padding:6px 12px;font-weight:700;font-size:14px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.lines{flex:1;overflow-y:auto;padding:4px 18px;padding-right:max(18px,env(safe-area-inset-right,0px))}
+.line{padding:12px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px}
+.line .nm{font-weight:600;font-size:14px;line-height:1.3}
+.line .sub{font-size:12.5px;color:var(--muted)}
+.line .lp{text-align:right}
+.line .ctrl{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.qty{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px}
+.qty button{border:0;background:transparent;width:30px;height:30px;font-size:16px}
+.qty span{min-width:22px;text-align:center;font-weight:700}
+.line select{height:32px;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:0 8px;font-size:13px;max-width:100%}
+.x{border:0;background:transparent;color:var(--muted);margin-left:auto;font-size:13px;text-decoration:underline}
+.totals{border-top:1px solid var(--line);padding:14px 18px;padding-right:max(18px,env(safe-area-inset-right,0px));padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;background:var(--surface)}
+.tot{display:flex;justify-content:space-between;font-size:14px;color:var(--muted)}
+.tot.big{color:var(--ink);font-weight:700;font-size:22px;font-family:var(--f-display)}
+.tot.save{color:var(--ok);font-weight:600}
+.actions{display:flex;gap:8px;margin-top:6px}
+.actions .btn{flex:1;justify-content:center}
+.cart-empty{color:var(--muted);text-align:center;padding:40px 10px;font-size:14px}
+.mobilebar{display:none}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;opacity:0;transition:.2s;pointer-events:none;z-index:50}
+.toast.on{opacity:1;transform:translateX(-50%)}
+
+/* Offres */
+.overlay{position:fixed;inset:0;background:rgba(10,12,16,.45);z-index:30;display:flex;justify-content:flex-end}
+.panel{background:var(--surface);width:min(560px,100%);height:100%;overflow-y:auto;padding:20px;padding-right:max(20px,env(safe-area-inset-right,0px));padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px}
+.panel h2{margin:0;font-family:var(--f-display);font-size:22px}
+.panel p.hint{margin:0;color:var(--muted);font-size:14px}
+.res{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.res button{border:0;border-bottom:1px solid var(--line);background:var(--surface);text-align:left;padding:10px 12px;display:flex;justify-content:space-between;gap:10px}
+.res button:last-child{border-bottom:0}
+.res button:hover{background:var(--surface-2)}
+.form{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:12px;background:var(--surface-2)}
+.form label{font-size:13px;font-weight:600;display:flex;flex-direction:column;gap:6px}
+.form select,.form input{height:42px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:0 10px}
+.form .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.olist{display:flex;flex-direction:column}
+.orow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.orow .val{font-weight:700;color:var(--sale);white-space:nowrap}
+.note{font-size:13px;padding:10px 12px;border-radius:10px;background:var(--surface-2);color:var(--muted)}
+
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-bottom:96px}
+  .filters{grid-template-columns:1fr 1fr}
+  .filters .field:first-child{grid-column:1/-1}
+  .cart{position:fixed;inset:auto 0 0 0;height:88%;border-left:0;border-top:1px solid var(--line);border-radius:18px 18px 0 0;z-index:20;transform:translateY(102%);transition:transform .25s;box-shadow:0 -10px 40px rgba(0,0,0,.2)}
+  .cart.open{transform:none}
+  .mobilebar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:15;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:var(--surface);border-top:1px solid var(--line)}
+  .mobilebar button{flex:1;height:50px;border:0;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:16px;display:flex;justify-content:space-between;align-items:center;padding:0 16px}
+  .closecart{display:inline-flex!important}
+  .toast{bottom:calc(86px + env(safe-area-inset-bottom,0px));max-width:calc(100% - 32px)}
+}
+.closecart{display:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="app">
+  <main class="main">
+    <div class="top">
+      <div class="brandrow">
+        <div class="brand">Panier Salon <small id="countInfo"></small></div>
+        <button class="btn ghost" id="openOffers" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
+          Offres salon <span id="offerCount" class="num"></span>
+        </button>
+      </div>
+      <div class="filters">
+        <div class="field">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="q" type="search" placeholder="Rechercher un produit, un coloris ou une référence" autocomplete="off">
+          <button class="clear" id="clearQ" type="button" aria-label="Effacer" hidden>✕</button>
+        </div>
+        <div class="field"><select id="fG" aria-label="Gamme">
+          <option value="">Toutes gammes</option>
+          <option value="platinum">Cybex Platinum</option>
+          <option value="gold">Cybex Gold</option>
+          <option value="cbx">CBX by Cybex</option>
+        </select></div>
+        <div class="field"><select id="fC" aria-label="Catégorie">
+          <option value="">Toutes catégories</option>
+          <option value="poussette">Poussettes</option>
+          <option value="siege">Sièges auto</option>
+          <option value="home">Home</option>
+          <option value="carrier">Carriers</option>
+          <option value="accessoires">Accessoires</option>
+        </select></div>
+      </div>
+    </div>
+    <div id="catalog"></div>
+  </main>
+
+  <aside class="cart" id="cart" aria-label="Panier">
+    <div class="cart-h">
+      <div class="row">
+        <h2>Panier</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="seg" role="group" aria-label="Remise du panier" id="pctSeg">
+            <button type="button" data-p="0">0 %</button>
+            <button type="button" data-p="10">−10 %</button>
+            <button type="button" data-p="15">−15 %</button>
+            <button type="button" data-p="20">−20 %</button>
+          </div>
+          <button class="btn ghost closecart" id="closeCart" type="button" aria-label="Fermer le panier">✕</button>
+        </div>
+      </div>
+      <input id="client" type="text" placeholder="Nom du client (facultatif)" autocomplete="off">
+    </div>
+    <div class="lines" id="lines"></div>
+    <div class="totals">
+      <div class="tot"><span>Prix plein</span><span class="num" id="tFull">0,00 €</span></div>
+      <div class="tot save"><span>Économie</span><span class="num" id="tSave">0,00 €</span></div>
+      <div class="tot big"><span>Total remisé</span><span class="num" id="tNet">0,00 €</span></div>
+      <div class="actions">
+        <button class="btn" id="copy" type="button">Copier le récapitulatif</button>
+        <button class="btn danger" id="reset" type="button">Nouveau panier</button>
+      </div>
+    </div>
+  </aside>
+</div>
+<div class="mobilebar"><button type="button" id="openCart"><span id="mbCount">Panier</span><span class="num" id="mbTotal">0,00 €</span></button></div>
+<div class="toast" id="toast" role="status"></div>
+
+<div class="overlay" id="offers" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="offersTitle">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <h2 id="offersTitle">Offres salon</h2>
+      <button class="btn ghost" id="closeOffers" type="button">Fermer</button>
+    </div>
+    <p class="hint">Définissez ici les produits qui ont une remise différente ou un prix particulier. Ces offres s'appliquent automatiquement dans les paniers, à la place de la remise du panier.</p>
+    <div class="note" id="syncNote">Connexion aux offres partagées…</div>
+    <div id="editor">
+      <div class="field">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="oq" type="search" placeholder="Chercher le produit à mettre en offre" autocomplete="off">
+      </div>
+      <div class="res" id="ores" hidden></div>
+      <form class="form" id="oform" hidden>
+        <div><div class="sub" id="ofName" style="font-weight:700"></div><div class="sub" id="ofRange" style="font-size:13px;color:var(--muted)"></div></div>
+        <label>Coloris concerné<select id="ofVar"></select></label>
+        <div class="two">
+          <label>Type d'offre<select id="ofType"><option value="prix">Prix particulier (€)</option><option value="pct">Remise en %</option></select></label>
+          <label><span id="ofValLabel">Prix salon TTC</span><input id="ofVal" type="number" step="0.01" min="0" inputmode="decimal" required></label>
+        </div>
+        <div style="display:flex;gap:8px"><button class="btn primary" type="submit">Enregistrer l'offre</button><button class="btn ghost" type="button" id="ofCancel">Annuler</button></div>
+      </form>
+    </div>
+    <div>
+      <div class="sub-h">Offres en cours</div>
+      <div class="olist" id="olist"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = [{"g":"platinum","c":"poussette","s":"Poussettes","n":"PRIAM Style Châssis, hardpart du siège inclus","v":[{"r":"526000201","d":"Chrome Brown","k":"chrome","p":749.95},{"r":"526000211","d":"Matt Black","k":"black","p":749.95},{"r":"526000221","d":"Rosegold","k":"rosegold","p":799.95},{"r":"526003721","d":"Champagne Gold","k":"beige","p":799.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"ePRIAM Style Châssis, hardpart du siège inclus","v":[{"r":"526000231","d":"Chrome Brown","k":"chrome","p":1199.95},{"r":"526000243","d":"Matt Black","k":"black","p":1199.95},{"r":"526000255","d":"Rosegold","k":"rosegold","p":1249.95},{"r":"526003727","d":"Champagne Gold","k":"beige","p":1249.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"PRIAM Style Pack siège","v":[{"r":"526000297","d":"Sepia Black","k":"black","p":249.95},{"r":"526000305","d":"City Grey","k":"light grey","p":249.95},{"r":"526000313","d":"Cozy Beige","k":"beige","p":249.95},{"r":"526000321","d":"Sage Green","k":"mid green","p":249.95},{"r":"526000337","d":"Off White","k":"light beige","p":249.95},{"r":"526000345","d":"Peach Pink","k":"light pink","p":249.95},{"r":"526001611","d":"Coconut Brown","k":"dark brown","p":249.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"PRIAM Style Nacelle pliable","v":[{"r":"526000353","d":"Sepia Black","k":"black","p":449.95},{"r":"526000359","d":"City Grey","k":"light grey","p":449.95},{"r":"526000365","d":"Cozy Beige","k":"beige","p":449.95},{"r":"526000371","d":"Sage Green","k":"mid green","p":449.95},{"r":"526000383","d":"Off White","k":"light beige","p":449.95},{"r":"526000389","d":"Peach Pink","k":"light pink","p":449.95},{"r":"526001617","d":"Coconut Brown","k":"dark brown","p":449.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"PRIAM Comfort Matt Black incl. Nacelle pliable","v":[{"r":"526000011","d":"Sepia Black","k":"black","p":1299.95},{"r":"526000021","d":"Cozy Beige","k":"beige","p":1299.95},{"r":"526001485","d":"Coconut Brown","k":"dark brown","p":1299.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"PRIAM Comfort Rosegold incl. Nacelle pliable","v":[{"r":"526000001","d":"Sepia Black","k":"black","p":1349.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"ePRIAM Comfort Matt Black incl. Nacelle pliable","v":[{"r":"526000053","d":"Sepia Black","k":"black","p":1749.95},{"r":"526000065","d":"Cozy Beige","k":"beige","p":1749.95},{"r":"526001491","d":"Coconut Brown","k":"dark brown","p":1749.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"ePRIAM Comfort Rosegold incl. Nacelle pliable","v":[{"r":"526000041","d":"Sepia Black","k":"black","p":1799.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"MIOS Style Châssis, hardpart du siège inclus","v":[{"r":"526000267","d":"Chrome Brown","k":"chrome","p":499.95},{"r":"526000277","d":"Matt Black","k":"black","p":499.95},{"r":"526000287","d":"Rosegold","k":"rosegold","p":549.95},{"r":"526003733","d":"Champagne Gold","k":"beige","p":549.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"MIOS Style Pack siège","v":[{"r":"526000395","d":"Sepia Black","k":"black","p":249.95},{"r":"526000403","d":"City Grey","k":"light grey","p":249.95},{"r":"526000411","d":"Cozy Beige","k":"beige","p":249.95},{"r":"526000419","d":"Sage Green","k":"mid green","p":249.95},{"r":"526000435","d":"Off White","k":"light beige","p":249.95},{"r":"526000443","d":"Peach Pink","k":"light pink","p":249.95},{"r":"526001621","d":"Coconut Brown","k":"dark brown","p":249.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"MIOS / COŸA Style Nacelle pliable","v":[{"r":"526000451","d":"Sepia Black","k":"black","p":399.95},{"r":"526000457","d":"City Grey","k":"light grey","p":399.95},{"r":"526000463","d":"Cozy Beige","k":"beige","p":399.95},{"r":"526000469","d":"Sage Green","k":"mid green","p":399.95},{"r":"526000481","d":"Off White","k":"light beige","p":399.95},{"r":"526000487","d":"Peach Pink","k":"light pink","p":399.95},{"r":"526001627","d":"Coconut Brown","k":"dark brown","p":399.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"MIOS Comfort Matt Black incl. Nacelle pliable","v":[{"r":"526000099","d":"Sepia Black","k":"black","p":999.95},{"r":"526000109","d":"Cozy Beige","k":"beige","p":999.95},{"r":"526001499","d":"Coconut Brown","k":"dark brown","p":999.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"MIOS Comfort Rosegold incl. Nacelle pliable","v":[{"r":"526000089","d":"Sepia Black","k":"black","p":1049.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"COŸA Style Matt Black","v":[{"r":"526000675","d":"Sepia Black","k":"black","p":549.95},{"r":"526000687","d":"City Grey","k":"light grey","p":549.95},{"r":"526000699","d":"Off White","k":"light beige","p":549.95},{"r":"526000711","d":"Cozy Beige","k":"beige","p":549.95},{"r":"526000723","d":"Sage Green","k":"mid green","p":549.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"COŸA Style Chrome Brown","v":[{"r":"526000735","d":"Sepia Black","k":"black","p":549.95},{"r":"526000747","d":"City Grey","k":"light grey","p":549.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"COŸA Style Rosegold","v":[{"r":"526000615","d":"Sepia Black","k":"black","p":599.95},{"r":"526000627","d":"Cozy Beige","k":"beige","p":599.95},{"r":"526000639","d":"Sage Green","k":"mid green","p":599.95},{"r":"526000651","d":"Peach Pink","k":"light pink","p":599.95},{"r":"526001631","d":"Coconut Brown","k":"dark brown","p":599.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"COŸA Style Champagne Gold","v":[{"r":"526003747","d":"Sepia Black","k":"black","p":599.95},{"r":"526003751","d":"Cozy Beige","k":"beige","p":599.95},{"r":"526003755","d":"Coconut Brown","k":"dark brown","p":599.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"COŸA Comfort Matt Black incl. Nacelle pliable","v":[{"r":"526000189","d":"Cozy Beige","k":"beige","p":799.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"COŸA Comfort Rosegold incl. Nacelle pliable","v":[{"r":"526000177","d":"Sepia Black","k":"black","p":849.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"COŸA Comfort Matt Black","v":[{"r":"526000141","d":"Sepia Black","k":"black","p":499.95},{"r":"526000153","d":"Cozy Beige","k":"beige","p":499.95},{"r":"526001503","d":"Coconut Brown","k":"dark brown","p":499.95}]},{"g":"platinum","c":"poussette","s":"Poussettes","n":"COŸA Comfort Rosegold","v":[{"r":"526000129","d":"Sepia Black","k":"black","p":549.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"Platinum Shopper Bag","v":[{"r":"521002941","d":"Soho Grey","k":"mid grey","p":179.95},{"r":"521002943","d":"Deep Black","k":"black","p":179.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"Platinum Tote Bag","v":[{"r":"521002955","d":"Soho Grey","k":"mid grey","p":159.95},{"r":"521002957","d":"Deep Black","k":"black","p":159.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"Newborn Nest","v":[{"r":"522002325","d":"Black","k":"black","p":59.95},{"r":"522002327","d":"White","k":"white","p":59.95},{"r":"522002925","d":"Navy","k":"navy","p":59.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"Coussin comfort été","v":[{"r":"522002341","d":"Beige","k":"beige","p":49.95},{"r":"522002329","d":"White","k":"white","p":49.95},{"r":"522002335","d":"Grey","k":"grey","p":49.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"Ombrelle","v":[{"r":"526000520","d":"Sepia Black","k":"black","p":59.95},{"r":"526000526","d":"City Grey","k":"light grey","p":59.95},{"r":"526000532","d":"Cozy Beige","k":"beige","p":59.95},{"r":"526000538","d":"Sage Green","k":"mid green","p":59.95},{"r":"526000550","d":"Off White","k":"light beige","p":59.95},{"r":"526000556","d":"Peach Pink","k":"light pink","p":59.95},{"r":"526001659","d":"Coconut Brown","k":"dark brown","p":59.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"Platinum Chancelière","v":[{"r":"526000508","d":"Sepia Black","k":"black","p":149.95},{"r":"526000510","d":"City Grey","k":"light grey","p":149.95},{"r":"526000512","d":"Cozy Beige","k":"beige","p":149.95},{"r":"526000514","d":"Sage Green","k":"mid green","p":149.95},{"r":"526000518","d":"Off White","k":"light beige","p":149.95},{"r":"526000605","d":"Peach Pink","k":"light pink","p":149.95},{"r":"526001655","d":"Coconut Brown","k":"dark brown","p":149.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"Platinum Chancelière Hiver","v":[{"r":"521000803","d":"Deep Black","k":"black","p":239.95},{"r":"521000815","d":"Nautical Blue","k":"navy blue","p":239.95},{"r":"521000827","d":"Arctic Silver","k":"silver","p":239.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"SNØGGA","v":[{"r":"526003233","d":"Almond Beige","k":"beige","p":99.95},{"r":"526003235","d":"Moon Black","k":"black","p":99.95},{"r":"526003237","d":"Stormy Blue","k":"light blue","p":99.95},{"r":"526003239","d":"Moss Green","k":"khaki","p":99.95},{"r":"526003241","d":"Chocolate Brown","k":"brown","p":99.95},{"r":"526003243","d":"Dune Grey","k":"grey","p":99.95},{"r":"522002835","d":"Moon Black","k":"black","p":99.95},{"r":"522002837","d":"Lava Grey","k":"mid grey","p":99.95},{"r":"522002839","d":"Ocean Blue","k":"navy blue","p":99.95},{"r":"522002841","d":"Sky Blue","k":"light blue","p":99.95},{"r":"522002843","d":"Seashell Beige","k":"light beige","p":99.95},{"r":"522002845","d":"Powder Pink","k":"light pink","p":99.95},{"r":"522002847","d":"Nature Green","k":"green","p":99.95},{"r":"522002849","d":"Hibiscus Red","k":"red","p":99.95},{"r":"522002851","d":"Beach Blue","k":"turquoise","p":99.95},{"r":"524001483","d":"Stone Grey","k":"mid grey","p":99.95},{"r":"524001485","d":"Almond Beige","k":"beige","p":99.95},{"r":"524001739","d":"Candy Pink","k":"light pink","p":99.95}],"new":1},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"eStroller Batterie","v":[{"r":"519002653","d":"Black","k":"black","p":239.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"COYA Adaptateur","v":[{"r":"526001115","d":"Black","k":"black","p":49.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"PRIAM Set roues avant terrain difficile","v":[{"r":"519002695","d":"Multicolour","k":"multicolor","p":119.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"PRIAM Skis","v":[{"r":"519002901","d":"Black","k":"black","p":99.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"PRIAM / ePRIAM Style Basket","v":[{"r":"526002731","d":"Sepia Black","k":"black","p":49.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"MIOS Style Basket","v":[{"r":"526002725","d":"Sepia Black","k":"black","p":49.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"COYA Garde-corps","v":[{"r":"526001117","d":"Black","k":"black","p":49.95},{"r":"526001119","d":"Dark Brown","k":"dark brown","p":49.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"Platinum Plateau repas","v":[{"r":"519002897","d":"Black","k":"black","p":59.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"Porte gobelet","v":[{"r":"518002943","d":"Black","k":"black","p":29.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"2in1 Porte gobelet","v":[{"r":"520004449","d":"Black","k":"black","p":34.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"Kid Board","v":[{"r":"518002951","d":"Black","k":"black","p":109.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"Voile soleil Platinum","v":[{"r":"522000407","d":"Light Grey","k":"light grey","p":49.95},{"r":"522000585","d":"Black","k":"black","p":49.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"COYA Habillage pluie","v":[{"r":"522004123","d":"Transparent","k":"transparent","p":49.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"PRIAM/MIOS Moustiquaire Nacelle de luxe","v":[{"r":"519003275","d":"Black","k":"black","p":34.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"PRIAM/MIOS Moustiquaire Siège de luxe","v":[{"r":"519002899","d":"Black","k":"black","p":34.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires poussettes","n":"COYA Moustiquaire","v":[{"r":"522004965","d":"Black","k":"black","p":34.95}]},{"g":"platinum","c":"carrier","s":"Porte-bébés","n":"COYA Carrier","v":[{"r":"524000633","d":"Urban Mobility","k":"black","p":249.95},{"r":"524000725","d":"Royal Blue","k":"navy blue","p":249.95},{"r":"524000731","d":"Thunder Grey","k":"light grey","p":249.95},{"r":"524000737","d":"Leaf Green","k":"dark green","p":249.95},{"r":"524001259","d":"Cozy Beige","k":"beige","p":249.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 0+","n":"NEW* - CLOUD S","v":[{"r":"526002165","d":"Sepia Black","k":"black","p":249.95},{"r":"526002865","d":"Cozy Beige","k":"beige","p":249.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 0+","n":"CLOUD T I-SIZE","v":[{"r":"523000219","d":"Sepia Black","k":"black","p":239.95},{"r":"523000225","d":"Mirage Grey","k":"dark grey","p":239.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 0+","n":"NEW* - CLOUD S Style","v":[{"r":"526002173","d":"Sepia Black","k":"black","p":289.95},{"r":"526002181","d":"Opal Blue","k":"medium blue","p":289.95},{"r":"526002873","d":"Misty Grey","k":"light grey","p":289.95},{"r":"526002881","d":"Amber Brown","k":"light brown","p":289.95},{"r":"526002889","d":"Quartz Pink","k":"dark pink","p":289.95},{"r":"526002897","d":"Jade Green","k":"yellow green","p":289.95},{"r":"526002905","d":"Off White","k":"light beige","p":289.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 0+","n":"CLOUD T I-SIZE PLUS","v":[{"r":"523000231","d":"Sepia Black","k":"black","p":269.95},{"r":"523000237","d":"Mirage Grey","k":"dark grey","p":269.95},{"r":"523000243","d":"Platinum White","k":"light grey","p":269.95},{"r":"523000249","d":"Peach Pink","k":"light pink","p":269.95},{"r":"523000255","d":"Leaf Green","k":"dark green","p":269.95},{"r":"523001301","d":"Cozy Beige","k":"beige","p":269.95},{"r":"526000497","d":"Sage Green","k":"mid green","p":269.95},{"r":"526000505","d":"Off White","k":"light beige","p":269.95},{"r":"526001649","d":"Coconut Brown","k":"dark brown","p":269.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 0+","n":"NEW* - BASE S","v":[{"r":"526002161","d":"Black","k":"black","p":249.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 0+","n":"BASE T","v":[{"r":"522000069","d":"Black","k":"black","p":239.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 0+/1","n":"NEW* - SIRONA S","v":[{"r":"526002585","d":"Sepia Black","k":"black","p":329.95},{"r":"526002913","d":"Cozy Beige","k":"beige","p":329.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 0+/1","n":"SIRONA T I-SIZE","v":[{"r":"523000375","d":"Sepia Black","k":"black","p":329.95},{"r":"523000381","d":"Mirage Grey","k":"dark grey","p":329.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 0+/1","n":"NEW* - SIRONA S Style","v":[{"r":"526002195","d":"Sepia Black","k":"black","p":389.95},{"r":"526002199","d":"Opal Blue","k":"medium blue","p":389.95},{"r":"526002917","d":"Misty Grey","k":"light grey","p":389.95},{"r":"526002921","d":"Amber Brown","k":"light brown","p":389.95},{"r":"526002925","d":"Quartz Pink","k":"dark pink","p":389.95},{"r":"526002929","d":"Jade Green","k":"yellow green","p":389.95},{"r":"526002933","d":"Off White","k":"light beige","p":389.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 0+/1","n":"SIRONA T I-SIZE PLUS","v":[{"r":"523000387","d":"Sepia Black","k":"black","p":379.95},{"r":"523000393","d":"Mirage Grey","k":"dark grey","p":379.95},{"r":"523000399","d":"Nautical Blue","k":"navy blue","p":379.95},{"r":"523000405","d":"Platinum White","k":"light grey","p":379.95},{"r":"523000411","d":"Peach Pink","k":"light pink","p":379.95},{"r":"523000417","d":"Cozy Beige","k":"beige","p":379.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 0+/1","n":"NEW* - SIRONA Si","v":[{"r":"526003431","d":"Sepia Black","k":"black","p":419.95},{"r":"526003439","d":"Cozy Beige","k":"beige","p":419.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 0+/1","n":"NEW* - SIRONA Si Style","v":[{"r":"526003447","d":"Sepia Black","k":"black","p":469.95},{"r":"526003455","d":"Misty Grey","k":"light grey","p":469.95},{"r":"526003463","d":"Amber Brown","k":"light brown","p":469.95},{"r":"526003471","d":"Opal Blue","k":"medium blue","p":469.95},{"r":"526003479","d":"Quartz Pink","k":"dark pink","p":469.95},{"r":"526003487","d":"Jade Green","k":"yellow green","p":469.95},{"r":"526003495","d":"Off White","k":"light beige","p":469.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 0+/1","n":"SIRONA Ti I-SIZE PLUS","v":[{"r":"525000859","d":"Sepia Black","k":"black","p":399.95},{"r":"525000867","d":"Mirage Grey","k":"dark grey","p":399.95},{"r":"525000875","d":"Nautical Blue","k":"navy blue","p":399.95},{"r":"525000883","d":"Platinum White","k":"light grey","p":399.95},{"r":"525000891","d":"Peach Pink","k":"light pink","p":399.95},{"r":"525000899","d":"Cozy Beige","k":"beige","p":399.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 0+/1","n":"NEW* - ANORIS S","v":[{"r":"526002587","d":"Sepia Black","k":"black","p":479.95},{"r":"526002937","d":"Cozy Beige","k":"beige","p":479.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 0+/1","n":"NEW* - ANORIS S Style","v":[{"r":"526002205","d":"Sepia Black","k":"black","p":539.95},{"r":"526002209","d":"Opal Blue","k":"medium blue","p":539.95},{"r":"526002941","d":"Misty Grey","k":"light grey","p":539.95},{"r":"526002945","d":"Amber Brown","k":"light brown","p":539.95},{"r":"526002949","d":"Quartz Pink","k":"dark pink","p":539.95},{"r":"526002953","d":"Jade Green","k":"yellow green","p":539.95},{"r":"526002957","d":"Off White","k":"light beige","p":539.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 0+/1","n":"NEW* - ANORIS Si","v":[{"r":"526003503","d":"Sepia Black","k":"black","p":639.95},{"r":"526003507","d":"Cozy Beige","k":"beige","p":639.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 0+/1","n":"NEW* - ANORIS Si Style","v":[{"r":"526003511","d":"Sepia Black","k":"black","p":699.95},{"r":"526003515","d":"Misty Grey","k":"light grey","p":699.95},{"r":"526003519","d":"Amber Brown","k":"light brown","p":699.95},{"r":"526003523","d":"Opal Blue","k":"medium blue","p":699.95},{"r":"526003527","d":"Quartz Pink","k":"dark pink","p":699.95},{"r":"526003531","d":"Jade Green","k":"yellow green","p":699.95},{"r":"526003535","d":"Off White","k":"light beige","p":699.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 0+/1","n":"ANORIS T2 I-SIZE PLUS","v":[{"r":"523001059","d":"Sepia Black","k":"black","p":649.95},{"r":"523001063","d":"Mirage Grey","k":"dark grey","p":649.95},{"r":"523001067","d":"Nautical Blue","k":"navy blue","p":649.95},{"r":"523001071","d":"Platinum White","k":"light grey","p":649.95},{"r":"523001075","d":"Peach Pink","k":"light pink","p":649.95},{"r":"523001079","d":"Cozy Beige","k":"beige","p":649.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 2/3","n":"NEW* - SOLUTION S","v":[{"r":"526003121","d":"Sepia Black","k":"black","p":199.95},{"r":"526003125","d":"Cozy Beige","k":"beige","p":199.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 2/3","n":"SOLUTION T I-FIX","v":[{"r":"522004117","d":"Sepia Black","k":"black","p":199.95},{"r":"522004119","d":"Mirage Grey","k":"dark grey","p":199.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 2/3","n":"NEW* - SOLUTION S Style","v":[{"r":"526003129","d":"Sepia Black","k":"black","p":259.95},{"r":"526003133","d":"Misty Grey","k":"light grey","p":259.95},{"r":"526003137","d":"Amber Brown","k":"light brown","p":259.95},{"r":"526003141","d":"Opal Blue","k":"medium blue","p":259.95},{"r":"526003145","d":"Quartz Pink","k":"dark pink","p":259.95},{"r":"526003149","d":"Jade Green","k":"yellow green","p":259.95},{"r":"526003153","d":"Off White","k":"light beige","p":259.95}]},{"g":"platinum","c":"siege","s":"Siège auto Groupe 2/3","n":"SOLUTION T I-FIX PLUS","v":[{"r":"522004103","d":"Nautical Blue","k":"navy blue","p":229.95},{"r":"522004105","d":"Sepia Black","k":"black","p":229.95},{"r":"522004107","d":"Mirage Grey","k":"dark grey","p":229.95},{"r":"522004109","d":"Platinum White","k":"light grey","p":229.95},{"r":"522004111","d":"Peach Pink","k":"light pink","p":229.95},{"r":"522004113","d":"Cozy Beige","k":"beige","p":229.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"Mini chancelière Platinum hiver","v":[{"r":"522000441","d":"Deep Black","k":"black","p":169.95},{"r":"522000443","d":"Nautical Blue","k":"navy blue","p":169.95},{"r":"522000445","d":"Arctic Silver","k":"silver","p":169.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"SNØGGA MINI","v":[{"r":"526003257","d":"Almond Beige","k":"beige","p":79.95},{"r":"526003259","d":"Moon Black","k":"black","p":79.95},{"r":"526003261","d":"Stormy Blue","k":"light blue","p":79.95},{"r":"526003263","d":"Moss Green","k":"khaki","p":79.95},{"r":"526003265","d":"Chocolate Brown","k":"brown","p":79.95},{"r":"526003267","d":"Dune Grey","k":"grey","p":79.95}],"new":1},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"NEW* - SIRONA S insert nouveau-né","v":[{"r":"526003545","d":"Sepia Black","k":"black","p":49.95},{"r":"526003547","d":"Cozy Beige","k":"beige","p":49.95},{"r":"526003549","d":"Misty Grey","k":"light grey","p":49.95},{"r":"526003553","d":"Opal Blue","k":"medium blue","p":49.95},{"r":"526003555","d":"Quartz Pink","k":"dark pink","p":49.95},{"r":"526003557","d":"Jade Green","k":"yellow green","p":49.95},{"r":"526003559","d":"Off White","k":"light beige","p":49.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"Aircraft Kit Solution S","v":[{"r":"526005159","d":"Black","k":"black","p":29.95}],"new":1},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"Anoris T2 i-Size Batterie Set","v":[{"r":"522002453","d":"None","k":"none","p":19.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"Sangle de fixation","v":[{"r":"511410001","d":"Black","k":"black","p":24.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"Isofix Guides","v":[{"r":"50054001","d":"Black","k":"black","p":14.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"Kit de sécurité Sensorsafe 4 en 1 Groupe 0+","v":[{"r":"521002897","d":"Grey","k":"grey","p":59.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"Kit de sécurité Sensorafe 4 en 1 Groupe 0+/1","v":[{"r":"521002899","d":"Grey","k":"grey","p":59.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"Porte gobelet pour siège auto","v":[{"r":"523001109","d":"Black","k":"black","p":29.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"ATON / CLOUD Pare-soleil","v":[{"r":"518002927","d":"Black","k":"black","p":29.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"ATON / CLOUD Moustiquaire","v":[{"r":"516405001","d":"Black","k":"black","p":29.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"ATON / CLOUD Habillage pluie","v":[{"r":"516404001","d":"Transparent","k":"transparent","p":29.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"CLOUD T Housse d'été","v":[{"r":"522002447","d":"Grey","k":"grey","p":59.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"SIRONA T Housse d'été","v":[{"r":"523000425","d":"Grey","k":"grey","p":59.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"ANORIS T2 Housse d'été","v":[{"r":"523001549","d":"Grey","k":"grey","p":59.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"SOLUTION T PLUS Housse d'été","v":[{"r":"523001085","d":"Grey","k":"grey","p":59.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"NEW* - CLOUD S Housse d'été","v":[{"r":"526003539","d":"Grey","k":"grey","p":59.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"NEW* - SIRONA S Housse d'été","v":[{"r":"526003541","d":"Grey","k":"grey","p":59.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"NEW* - ANORIS S Housse d'été","v":[{"r":"526003543","d":"Grey","k":"grey","p":59.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires siège auto","n":"NEW* - SOLUTION S Housse d'été","v":[{"r":"526004263","d":"Grey","k":"grey","p":59.95}]},{"g":"platinum","c":"home","s":"Home","n":"LEMO Platinum 4in1 SET","v":[{"r":"524001569","d":"Black Wood","k":"black","p":899.95},{"r":"524001571","d":"White Wood","k":"white","p":879.95}]},{"g":"platinum","c":"home","s":"Home","n":"LEMO Platinum 3in1 SET","v":[{"r":"524001553","d":"Black Wood","k":"black","p":699.95},{"r":"524001555","d":"White Wood","k":"white","p":679.95}]},{"g":"platinum","c":"home","s":"Home","n":"LEMO Platinum","v":[{"r":"524001541","d":"Black Wood","k":"black","p":499.95},{"r":"524001543","d":"White Wood","k":"white","p":479.95}]},{"g":"platinum","c":"home","s":"Home","n":"Platinum Bouncer","v":[{"r":"524001525","d":"Black Wood","k":"black","p":359.95},{"r":"524001527","d":"White Wood","k":"white","p":339.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires Home","n":"LEMO Platinum Baby Cushion","v":[{"r":"524001583","d":"Stone Black Nature","k":"black","p":69.95},{"r":"524001587","d":"Cream White Nature","k":"white","p":69.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires Home","n":"LEMO Platinum Child Cushion","v":[{"r":"524001615","d":"Stone Black Nature","k":"black","p":99.95},{"r":"524001619","d":"Cream White Nature","k":"white","p":99.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires Home","n":"Platinum Socle pour bouncer","v":[{"r":"524000481","d":"Black","k":"black","p":199.95},{"r":"524000483","d":"White","k":"white","p":189.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires Home","n":"LEMO Platinum Set d’adaptateurs","v":[{"r":"524001649","d":"Black","k":"black","p":69.95},{"r":"524001651","d":"White","k":"white","p":59.95}]},{"g":"platinum","c":"accessoires","s":"Accessoires Home","n":"LEMO Platinum Harnais","v":[{"r":"524001645","d":"Stone Black","k":"black","p":49.95},{"r":"524001647","d":"Cream White","k":"white","p":49.95}]},{"g":"platinum","c":"carrier","s":"Fashion Edition Bouclé","n":"COYA Carrier","v":[{"r":"525000455","d":"Bouclé Cream White","k":"white","p":379.95},{"r":"525000787","d":"Bouclé Smoky Black","k":"black","p":379.95}]},{"g":"platinum","c":"carrier","s":"Fashion Edition Bouclé","n":"Belt Bag","v":[{"r":"525000471","d":"Bouclé Cream White","k":"white","p":199.95},{"r":"525000793","d":"Bouclé Smoky Black","k":"black","p":199.95}]},{"g":"platinum","c":"poussette","s":"Fashion Edition Rebellious Luxury","n":"PRIAM","v":[{"r":"526001565","d":"Rebellious Luxury Denim Blue","k":"navy blue","p":1299.95}]},{"g":"platinum","c":"poussette","s":"Fashion Edition Rebellious Luxury","n":"ePRIAM","v":[{"r":"526001571","d":"Rebellious Luxury Denim Blue","k":"navy blue","p":1699.95}]},{"g":"platinum","c":"poussette","s":"Fashion Edition Rebellious Luxury","n":"PRIAM Nacelle pliable","v":[{"r":"526001585","d":"Rebellious Luxury Denim Blue","k":"navy blue","p":699.95}]},{"g":"platinum","c":"poussette","s":"Fashion Edition Rebellious Luxury","n":"MIOS Matt Black","v":[{"r":"526001579","d":"Rebellious Luxury Denim Blue","k":"navy blue","p":999.95}]},{"g":"platinum","c":"poussette","s":"Fashion Edition Rebellious Luxury","n":"MIOS / COŸA Nacelle pliable","v":[{"r":"526001591","d":"Rebellious Luxury Denim Blue","k":"navy blue","p":649.95}]},{"g":"platinum","c":"poussette","s":"Fashion Edition Rebellious Luxury","n":"COŸA","v":[{"r":"526001597","d":"Rebellious Luxury Denim Blue","k":"navy blue","p":749.95}]},{"g":"platinum","c":"siege","s":"Fashion Edition Rebellious Luxury","n":"CLOUD T I-SIZE","v":[{"r":"525000539","d":"Rebellious Luxury Denim Blue","k":"navy blue","p":369.95}]},{"g":"platinum","c":"carrier","s":"Fashion Edition Rebellious Luxury","n":"COYA Carrier","v":[{"r":"525000547","d":"Rebellious Luxury Denim Blue","k":"navy blue","p":329.95}]},{"g":"platinum","c":"accessoires","s":"Fashion Edition Rebellious Luxury","n":"Platinum Chancelière","v":[{"r":"525000555","d":"Rebellious Luxury Denim Blue","k":"navy blue","p":259.95}]},{"g":"platinum","c":"carrier","s":"Fashion Edition Rebellious Luxury","n":"Belt Bag","v":[{"r":"525000495","d":"Rebellious Luxury Denim Blue","k":"navy blue","p":179.95}]},{"g":"platinum","c":"poussette","s":"Fashion Edition Urban Mobility","n":"COŸA","v":[{"r":"526001553","d":"Urban Mobility White","k":"white","p":779.95},{"r":"526001549","d":"Urban Mobility Black","k":"black","p":729.95}]},{"g":"platinum","c":"poussette","s":"Fashion Edition Urban Mobility","n":"MIOS / COŸA Nacelle pliable","v":[{"r":"526001561","d":"Urban Mobility White","k":"white","p":629.95},{"r":"526001557","d":"Urban Mobility Black","k":"black","p":599.95}]},{"g":"platinum","c":"siege","s":"Fashion Edition Urban Mobility","n":"CLOUD T I-SIZE","v":[{"r":"524000711","d":"Urban Mobility White","k":"white","p":369.95},{"r":"524000703","d":"Urban Mobility Black","k":"black","p":369.95}]},{"g":"platinum","c":"carrier","s":"Fashion Edition Urban Mobility","n":"COYA Carrier","v":[{"r":"524000641","d":"Urban Mobility White","k":"white","p":249.95},{"r":"524000633","d":"Urban Mobility","k":"black","p":249.95}]},{"g":"platinum","c":"carrier","s":"Fashion Edition Urban Mobility","n":"Belt Bag","v":[{"r":"525000483","d":"Urban Mobility White","k":"white","p":149.95},{"r":"525000485","d":"Urban Mobility Black","k":"black","p":149.95}]},{"g":"platinum","c":"accessoires","s":"Fashion Edition Urban Mobility","n":"COYA Garde-corps","v":[{"r":"526003165","d":"Urban Mobility White","k":"white","p":49.95},{"r":"526003163","d":"Urban Mobility Black","k":"black","p":49.95}]},{"g":"platinum","c":"accessoires","s":"Fashion Edition Urban Mobility","n":"COŸA Adaptateur","v":[{"r":"526001851","d":"Urban Mobility White","k":"white","p":49.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"BALIOS S LUX BLK","v":[{"r":"526001169","d":"Moon Black","k":"black","p":499.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"BALIOS S LUX TPE","v":[{"r":"526001193","d":"Almond Beige","k":"beige","p":499.95},{"r":"526001205","d":"Chocolate Brown","k":"brown","p":499.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"BALIOS S LUX BLK incl. NACELLE S LUX","v":[{"r":"526001665","d":"Moon Black","k":"black","p":699.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"BALIOS S LUX TPE incl. NACELLE S LUX","v":[{"r":"526001671","d":"Almond Beige","k":"beige","p":699.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"BALIOS S LUX BLK incl. Nacelle pliable","v":[{"r":"526001677","d":"Moon Black","k":"black","p":749.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"BALIOS S LUX TPE incl. Nacelle pliable","v":[{"r":"526001683","d":"Stormy Blue","k":"light blue","p":749.95},{"r":"526001689","d":"Almond Beige","k":"beige","p":749.95},{"r":"526001695","d":"Moss Green","k":"khaki","p":749.95},{"r":"526001701","d":"Chocolate Brown","k":"brown","p":749.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"TALOS S LUX BLK","v":[{"r":"526001707","d":"Moon Black","k":"black","p":599.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"TALOS S LUX TPE","v":[{"r":"526001711","d":"Almond Beige","k":"beige","p":599.95},{"r":"526001715","d":"Chocolate Brown","k":"brown","p":599.95},{"r":"526002461","d":"Moss Green","k":"khaki","p":599.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"TALOS S LUX BLK incl. Nacelle pliable","v":[{"r":"526001727","d":"Moon Black","k":"black","p":849.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"TALOS S LUX TPE incl. Nacelle pliable","v":[{"r":"526001731","d":"Stormy Blue","k":"light blue","p":849.95},{"r":"526001735","d":"Almond Beige","k":"beige","p":849.95},{"r":"526001739","d":"Moss Green","k":"khaki","p":849.95},{"r":"526001743","d":"Chocolate Brown","k":"brown","p":849.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"NACELLE S LUX","v":[{"r":"522002615","d":"Seashell Beige","k":"light beige","p":249.95},{"r":"522002619","d":"Moon Black","k":"black","p":249.95},{"r":"522005267","d":"Almond Beige","k":"beige","p":249.95},{"r":"524001341","d":"Stone Grey","k":"mid grey","p":249.95},{"r":"524001349","d":"Stormy Blue","k":"light blue","p":249.95},{"r":"525000413","d":"Moss Green","k":"khaki","p":249.95},{"r":"525000421","d":"Chocolate Brown","k":"brown","p":249.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"AVI SPIN BLK","v":[{"r":"524000609","d":"Moon Black","k":"black","p":649.95},{"r":"524000617","d":"Fog Grey","k":"light grey","p":649.95},{"r":"524000625","d":"Stormy Blue","k":"light blue","p":649.95},{"r":"524000743","d":"Seashell Beige","k":"light beige","p":649.95},{"r":"524001009","d":"Almond Beige","k":"beige","p":649.95},{"r":"525000437","d":"Moss Green","k":"khaki","p":649.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"NACELLE S","v":[{"r":"524000367","d":"Moon Black","k":"black","p":209.95},{"r":"524000369","d":"Fog Grey","k":"light grey","p":209.95},{"r":"524000383","d":"Stormy Blue","k":"light blue","p":209.95},{"r":"524001329","d":"Seashell Beige","k":"light beige","p":209.95},{"r":"524001335","d":"Almond Beige","k":"beige","p":209.95},{"r":"525000429","d":"Moss Green","k":"khaki","p":209.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"EOS LUX BLK","v":[{"r":"522003825","d":"Moon Black","k":"black","p":579.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"EOS LUX SLV","v":[{"r":"522003847","d":"Lava Grey","k":"mid grey","p":579.95},{"r":"522003859","d":"Ocean Blue","k":"navy blue","p":579.95},{"r":"524001277","d":"Stone Grey","k":"mid grey","p":579.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"EOS LUX TPE","v":[{"r":"522003829","d":"Sky Blue","k":"light blue","p":579.95},{"r":"522003851","d":"Seashell Beige","k":"light beige","p":579.95},{"r":"524001283","d":"Stormy Blue","k":"light blue","p":579.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"GAZELLE S BLK","v":[{"r":"522002703","d":"Moon Black","k":"black","p":749.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"GAZELLE S SLV","v":[{"r":"522002707","d":"Ocean Blue","k":"navy blue","p":749.95},{"r":"524001289","d":"Stone Grey","k":"mid grey","p":749.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"GAZELLE S TPE","v":[{"r":"522002713","d":"Seashell Beige","k":"light beige","p":749.95},{"r":"522005243","d":"Almond Beige","k":"beige","p":749.95},{"r":"524001297","d":"Stormy Blue","k":"light blue","p":749.95},{"r":"525000121","d":"Moss Green","k":"khaki","p":749.95},{"r":"525000129","d":"Chocolate Brown","k":"brown","p":749.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"eGAZELLE S BLK","v":[{"r":"524000517","d":"Moon Black","k":"black","p":1099.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"eGAZELLE S SLV","v":[{"r":"524000523","d":"Stone Grey","k":"mid grey","p":1099.95},{"r":"524000529","d":"Ocean Blue","k":"navy blue","p":1099.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"eGAZELLE S TPE","v":[{"r":"524000535","d":"Stormy Blue","k":"light blue","p":1099.95},{"r":"524000541","d":"Seashell Beige","k":"light beige","p":1099.95},{"r":"524000547","d":"Almond Beige","k":"beige","p":1099.95},{"r":"525000169","d":"Moss Green","k":"khaki","p":1099.95},{"r":"525000175","d":"Chocolate Brown","k":"brown","p":1099.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"GAZELLE S Siège BLK","v":[{"r":"522002719","d":"Moon Black","k":"black","p":289.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"GAZELLE S Siège SLV","v":[{"r":"522002723","d":"Ocean Blue","k":"navy blue","p":289.95},{"r":"524001305","d":"Stone Grey","k":"mid grey","p":289.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"GAZELLE S Siège TPE","v":[{"r":"522002729","d":"Seashell Beige","k":"light beige","p":289.95},{"r":"522005251","d":"Almond Beige","k":"beige","p":289.95},{"r":"524001313","d":"Stormy Blue","k":"light blue","p":289.95},{"r":"525000137","d":"Moss Green","k":"khaki","p":289.95},{"r":"525000145","d":"Chocolate Brown","k":"brown","p":289.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"GAZELLE S Nacelle","v":[{"r":"522002731","d":"Moon Black","k":"black","p":239.95},{"r":"522002735","d":"Ocean Blue","k":"navy blue","p":239.95},{"r":"522002741","d":"Seashell Beige","k":"light beige","p":239.95},{"r":"522005259","d":"Almond Beige","k":"beige","p":239.95},{"r":"524001235","d":"Stone Grey","k":"mid grey","p":239.95},{"r":"524001245","d":"Stormy Blue","k":"light blue","p":239.95},{"r":"525000153","d":"Moss Green","k":"khaki","p":239.95},{"r":"525000161","d":"Chocolate Brown","k":"brown","p":239.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"MELIO CARBON","v":[{"r":"526000759","d":"Magic Black","k":"black","p":499.95},{"r":"526000767","d":"Almond Beige","k":"beige","p":499.95},{"r":"526000773","d":"Stormy Blue","k":"light blue","p":499.95},{"r":"526000779","d":"Candy Pink","k":"light pink","p":499.95},{"r":"526000785","d":"Moss Green","k":"khaki","p":499.95},{"r":"526000791","d":"Chocolate Brown","k":"brown","p":499.95},{"r":"526000797","d":"Dune Grey","k":"grey","p":499.95},{"r":"526000803","d":"Cinnamon Yellow","k":"dark yellow","p":499.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"MELIO Nacelle","v":[{"r":"526000809","d":"Magic Black","k":"black","p":199.95},{"r":"526000815","d":"Almond Beige","k":"beige","p":199.95},{"r":"526000819","d":"Stormy Blue","k":"light blue","p":199.95},{"r":"526000823","d":"Candy Pink","k":"light pink","p":199.95},{"r":"526000827","d":"Moss Green","k":"khaki","p":199.95},{"r":"526000831","d":"Chocolate Brown","k":"brown","p":199.95},{"r":"526000835","d":"Dune Grey","k":"grey","p":199.95},{"r":"526000839","d":"Cinnamon Yellow","k":"dark yellow","p":199.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"LIBELLE BLK","v":[{"r":"526000923","d":"Magic Black","k":"black","p":269.95},{"r":"526000959","d":"Candy Pink","k":"light pink","p":269.95},{"r":"526000995","d":"Dune Grey","k":"grey","p":269.95},{"r":"526001007","d":"Cinnamon Yellow","k":"dark yellow","p":269.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"LIBELLE TPE","v":[{"r":"526000935","d":"Almond Beige","k":"beige","p":269.95},{"r":"526000947","d":"Stormy Blue","k":"light blue","p":269.95},{"r":"526000971","d":"Moss Green","k":"khaki","p":269.95},{"r":"526000983","d":"Chocolate Brown","k":"brown","p":269.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"AGIS BLK","v":[{"r":"525000763","d":"Magic Black","k":"black","p":209.95},{"r":"525000769","d":"Almond Beige","k":"beige","p":209.95},{"r":"525000775","d":"Stormy Blue","k":"light blue","p":209.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"ORFEO BLK","v":[{"r":"526001019","d":"Magic Black","k":"black","p":309.95},{"r":"526001055","d":"Candy Pink","k":"light pink","p":309.95},{"r":"526001091","d":"Dune Grey","k":"grey","p":309.95},{"r":"526001103","d":"Cinnamon Yellow","k":"dark yellow","p":309.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"ORFEO TPE","v":[{"r":"526001031","d":"Almond Beige","k":"beige","p":309.95},{"r":"526001043","d":"Stormy Blue","k":"light blue","p":309.95},{"r":"526001067","d":"Moss Green","k":"khaki","p":309.95},{"r":"526001079","d":"Chocolate Brown","k":"brown","p":309.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"BEEZY BLK","v":[{"r":"526000859","d":"Magic Black","k":"black","p":299.95},{"r":"526000867","d":"Almond Beige","k":"beige","p":299.95},{"r":"526000875","d":"Stormy Blue","k":"light blue","p":299.95},{"r":"526000883","d":"Candy Pink","k":"light pink","p":299.95},{"r":"526000891","d":"Moss Green","k":"khaki","p":299.95},{"r":"526000899","d":"Chocolate Brown","k":"brown","p":299.95},{"r":"526000907","d":"Dune Grey","k":"grey","p":299.95},{"r":"526000915","d":"Cinnamon Yellow","k":"dark yellow","p":299.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"EEZY S TWIST+ 2 BLK","v":[{"r":"526000843","d":"Magic Black","k":"black","p":399.95},{"r":"526000855","d":"Dune Grey","k":"grey","p":399.95}]},{"g":"gold","c":"poussette","s":"Poussettes","n":"EEZY S TWIST+ 2 TPE","v":[{"r":"526000847","d":"Almond Beige","k":"beige","p":399.95},{"r":"526000851","d":"Stormy Blue","k":"light blue","p":399.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"Newborn Nest","v":[{"r":"522002325","d":"Black","k":"black","p":59.95},{"r":"522002327","d":"White","k":"white","p":59.95},{"r":"522002925","d":"Navy","k":"navy","p":59.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"Coussin comfort été","v":[{"r":"522002341","d":"Beige","k":"beige","p":49.95},{"r":"522002329","d":"White","k":"white","p":49.95},{"r":"522002335","d":"Grey","k":"grey","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"Gold Chancelière","v":[{"r":"522001361","d":"Moon Black","k":"black","p":109.95},{"r":"522001365","d":"Lava Grey","k":"mid grey","p":109.95},{"r":"522005113","d":"Sky Blue","k":"light blue","p":109.95},{"r":"524000001","d":"Stormy Blue","k":"light blue","p":109.95},{"r":"524000005","d":"Black","k":"black","p":109.95},{"r":"524000009","d":"Grey","k":"grey","p":109.95},{"r":"524001357","d":"Beige","k":"beige","p":109.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"SNØGGA","v":[{"r":"526003233","d":"Almond Beige","k":"beige","p":99.95},{"r":"526003235","d":"Moon Black","k":"black","p":99.95},{"r":"526003237","d":"Stormy Blue","k":"light blue","p":99.95},{"r":"526003239","d":"Moss Green","k":"khaki","p":99.95},{"r":"526003241","d":"Chocolate Brown","k":"brown","p":99.95},{"r":"526003243","d":"Dune Grey","k":"grey","p":99.95},{"r":"522002835","d":"Moon Black","k":"black","p":99.95},{"r":"522002837","d":"Lava Grey","k":"mid grey","p":99.95},{"r":"522002839","d":"Ocean Blue","k":"navy blue","p":99.95},{"r":"522002841","d":"Sky Blue","k":"light blue","p":99.95},{"r":"522002843","d":"Seashell Beige","k":"light beige","p":99.95},{"r":"522002845","d":"Powder Pink","k":"light pink","p":99.95},{"r":"522002847","d":"Nature Green","k":"green","p":99.95},{"r":"522002849","d":"Hibiscus Red","k":"red","p":99.95},{"r":"522002851","d":"Beach Blue","k":"turquoise","p":99.95},{"r":"524001483","d":"Stone Grey","k":"mid grey","p":99.95},{"r":"524001485","d":"Almond Beige","k":"beige","p":99.95},{"r":"524001739","d":"Candy Pink","k":"light pink","p":99.95}],"new":1},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"eStroller Batterie","v":[{"r":"519002653","d":"Black","k":"black","p":239.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"Sac de transport","v":[{"r":"521001487","d":"Black","k":"black","p":59.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"LIBELLE Sac de transport","v":[{"r":"521000717","d":"Black","k":"black","p":39.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"BALIOS S / TALOS S Adaptateur","v":[{"r":"520003353","d":"Black","k":"black","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"AVI/AVI SPIN Adaptateur","v":[{"r":"520004225","d":"Black","k":"black","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"EOS Adaptateur","v":[{"r":"522004889","d":"Black","k":"black","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"GAZELLE S Adaptateur","v":[{"r":"520003357","d":"Black","k":"black","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"MELIO Adaptateur","v":[{"r":"520003355","d":"Black","k":"black","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"EEZY S LINE Adaptateur","v":[{"r":"518001467","d":"Black","k":"black","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"LIBELLE Adaptateur","v":[{"r":"522003779","d":"Black","k":"black","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"BEEZY Adaptateur","v":[{"r":"521000705","d":"Black","k":"black","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"COT S Adaptateur EEZY S LINE","v":[{"r":"519003399","d":"Black","k":"black","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"COT S Adaptateur AVI SPIN","v":[{"r":"524000795","d":"Black","k":"black","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"LIBELLE Garde-corps","v":[{"r":"521000721","d":"Black","k":"black","p":39.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"Porte gobelet","v":[{"r":"518002943","d":"Black","k":"black","p":29.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"2in1 Porte gobelet","v":[{"r":"520004449","d":"Black","k":"black","p":34.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"Kid Board","v":[{"r":"518002951","d":"Black","k":"black","p":109.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"GAZELLE S Kid Board","v":[{"r":"520004069","d":"Black","k":"black","p":109.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"Ombrelle","v":[{"r":"520004317","d":"Black","k":"black","p":59.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"BALIOS S Habillage pluie","v":[{"r":"518002121","d":"Transparent","k":"transparent","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"TALOS S LUX Habillage pluie","v":[{"r":"525000857","d":"Transparent","k":"transparent","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"Habillage pluie Nacelle pliable","v":[{"r":"526002981","d":"Transparent","k":"transparent","p":49.95}],"new":1},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"COT S LUX Habillage pluie","v":[{"r":"522002959","d":"Transparent","k":"transparent","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"AVI SPIN Habillage pluie","v":[{"r":"524001417","d":"Transparent","k":"transparent","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"COT S Habillage pluie","v":[{"r":"518002725","d":"Transparent","k":"transparent","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"EOS LUX Habillage pluie","v":[{"r":"520003363","d":"Transparent","k":"transparent","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"GAZELLE S Habillage pluie","v":[{"r":"520003377","d":"Transparent","k":"transparent","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"GAZELLE S Nacelle Habillage pluie","v":[{"r":"522002961","d":"Transparent","k":"transparent","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"MELIO Habillage pluie","v":[{"r":"520003375","d":"Transparent","k":"transparent","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"MELIO Nacelle Habillage pluie","v":[{"r":"520004291","d":"Transparent","k":"transparent","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"LIBELLE Habillage pluie","v":[{"r":"521000707","d":"Transparent","k":"transparent","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"AGIS Habillage pluie","v":[{"r":"525000785","d":"Transparent","k":"transparent","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"ORFEO Habillage pluie","v":[{"r":"522004845","d":"Transparent","k":"transparent","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"BEEZY Habillage pluie","v":[{"r":"521000713","d":"Transparent","k":"transparent","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"EEZY S TWIST 2 Habillage pluie","v":[{"r":"520003371","d":"Transparent","k":"transparent","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires poussettes","n":"AVI SPIN Moustiquaire","v":[{"r":"524001781","d":"Black","k":"black","p":49.95}]},{"g":"gold","c":"carrier","s":"Porte-bébés","n":"AMYA Carrier","v":[{"r":"526000586","d":"Fog Grey","k":"light grey","p":139.95},{"r":"526000592","d":"Almond Beige","k":"beige","p":139.95},{"r":"526000598","d":"Magic Black","k":"black","p":139.95},{"r":"526001239","d":"Dune Grey","k":"grey","p":139.95},{"r":"526001747","d":"Chocolate Brown","k":"brown","p":139.95}]},{"g":"gold","c":"carrier","s":"Porte-bébés","n":"LAYA Carrier","v":[{"r":"526000562","d":"Fog Grey","k":"light grey","p":199.95},{"r":"526000568","d":"Almond Beige","k":"beige","p":199.95},{"r":"526000574","d":"Magic Black","k":"black","p":199.95},{"r":"526000580","d":"Chocolate Brown","k":"brown","p":199.95},{"r":"526001367","d":"Dune Grey","k":"grey","p":199.95}]},{"g":"gold","c":"siege","s":"Siège auto Groupe 0+","n":"CLOUD G3","v":[{"r":"526001337","d":"Almond Beige","k":"beige","p":229.95},{"r":"526001339","d":"Magic Black","k":"black","p":229.95}]},{"g":"gold","c":"siege","s":"Siège auto Groupe 0+","n":"CLOUD G3 PLUS","v":[{"r":"526001341","d":"Stone Grey","k":"mid grey","p":259.95},{"r":"526001343","d":"Moon Black","k":"black","p":259.95},{"r":"526001345","d":"Stormy Blue","k":"light blue","p":259.95},{"r":"526001347","d":"Chocolate Brown**","k":"brown","p":259.95},{"r":"526001349","d":"Almond Beige","k":"beige","p":259.95},{"r":"526001817","d":"Moss Green**","k":"khaki","p":259.95}]},{"g":"gold","c":"siege","s":"Siège auto Groupe 0+","n":"BASE G3","v":[{"r":"526001365","d":"Black","k":"black","p":229.95}]},{"g":"gold","c":"siege","s":"Siège auto Groupe 0+/1","n":"SIRONA G3","v":[{"r":"526001313","d":"Almond Beige","k":"beige","p":269.95},{"r":"526001315","d":"Magic Black","k":"black","p":269.95}]},{"g":"gold","c":"siege","s":"Siège auto Groupe 0+/1","n":"SIRONA G3 PLUS","v":[{"r":"526001317","d":"Stone Grey","k":"mid grey","p":299.95},{"r":"526001321","d":"Moon Black","k":"black","p":299.95},{"r":"526001325","d":"Stormy Blue","k":"light blue","p":299.95},{"r":"526001329","d":"Chocolate Brown**","k":"brown","p":299.95},{"r":"526001333","d":"Almond Beige","k":"beige","p":299.95}]},{"g":"gold","c":"siege","s":"Siège auto Groupe 0+/1","n":"SIRONA Gi I-SIZE","v":[{"r":"524001443","d":"Magic Black","k":"black","p":299.95},{"r":"524001447","d":"Fog Grey","k":"light grey","p":299.95},{"r":"526001785","d":"Almond Beige","k":"beige","p":299.95}]},{"g":"gold","c":"siege","s":"Siège auto Groupe 0+/1","n":"SIRONA Gi I-SIZE PLUS","v":[{"r":"524001451","d":"Moon Black","k":"black","p":329.95},{"r":"524001455","d":"Stone Grey","k":"mid grey","p":329.95},{"r":"524001459","d":"Ocean Blue","k":"navy blue","p":329.95},{"r":"524001463","d":"Almond Beige","k":"beige","p":329.95},{"r":"524001467","d":"Stormy Blue","k":"light blue","p":329.95},{"r":"526001793","d":"Chocolate Brown**","k":"brown","p":329.95}]},{"g":"gold","c":"siege","s":"Siège auto Groupe 0+/1","n":"SIRONA Gi I-SIZE incl. insert nouveau-né","v":[{"r":"524001751","d":"Magic Black","k":"black","p":329.95},{"r":"524001753","d":"Fog Grey","k":"light grey","p":329.95}]},{"g":"gold","c":"siege","s":"Siège auto Groupe 0+/1","n":"SIRONA Gi I-SIZE PLUS incl. insert nouveau-né","v":[{"r":"524001755","d":"Moon Black","k":"black","p":359.95},{"r":"524001757","d":"Stone Grey","k":"mid grey","p":359.95}]},{"g":"gold","c":"siege","s":"Siège auto Groupe 1/2/3","n":"PALLAS G3 I-SIZE","v":[{"r":"525000943","d":"Magic Black","k":"black","p":259.95},{"r":"525000945","d":"Fog Grey","k":"light grey","p":259.95},{"r":"526001801","d":"Almond Beige","k":"beige","p":259.95}]},{"g":"gold","c":"siege","s":"Siège auto Groupe 1/2/3","n":"PALLAS G3 I-SIZE PLUS","v":[{"r":"525000947","d":"Moon Black","k":"black","p":289.95},{"r":"525000949","d":"Stone Grey","k":"mid grey","p":289.95},{"r":"525000951","d":"Ocean Blue","k":"navy blue","p":289.95},{"r":"525000953","d":"Stormy Blue","k":"light blue","p":289.95},{"r":"525000955","d":"Almond Beige","k":"beige","p":289.95},{"r":"526001803","d":"Chocolate Brown**","k":"brown","p":289.95}]},{"g":"gold","c":"siege","s":"Siège auto Groupe 2/3","n":"SOLUTION G2 I-FIX","v":[{"r":"524000649","d":"Magic Black","k":"black","p":159.95},{"r":"524000655","d":"Fog Grey","k":"light grey","p":159.95},{"r":"526001805","d":"Almond Beige","k":"beige","p":159.95}]},{"g":"gold","c":"siege","s":"Siège auto Groupe 2/3","n":"SOLUTION G2 I-FIX PLUS","v":[{"r":"524000661","d":"Moon Black","k":"black","p":189.95},{"r":"524000667","d":"Stone Grey","k":"mid grey","p":189.95},{"r":"524000673","d":"Ocean Blue","k":"navy blue","p":189.95},{"r":"524000679","d":"Stormy Blue","k":"light blue","p":189.95},{"r":"524000685","d":"Almond Beige","k":"beige","p":189.95},{"r":"526001811","d":"Chocolate Brown**","k":"brown","p":189.95}]},{"g":"gold","c":"accessoires","s":"Accessoires siège auto","n":"SNØGGA MINI","v":[{"r":"526003257","d":"Almond Beige","k":"beige","p":79.95},{"r":"526003259","d":"Moon Black","k":"black","p":79.95},{"r":"526003261","d":"Stormy Blue","k":"light blue","p":79.95},{"r":"526003263","d":"Moss Green","k":"khaki","p":79.95},{"r":"526003265","d":"Chocolate Brown","k":"brown","p":79.95},{"r":"526003267","d":"Dune Grey","k":"grey","p":79.95}],"new":1},{"g":"gold","c":"accessoires","s":"Accessoires siège auto","n":"Sangle de fixation","v":[{"r":"511410001","d":"Black","k":"black","p":24.95}]},{"g":"gold","c":"accessoires","s":"Accessoires siège auto","n":"Isofix Guides","v":[{"r":"50054001","d":"Black","k":"black","p":14.95}]},{"g":"gold","c":"accessoires","s":"Accessoires siège auto","n":"Kit de sécurité Sensorsafe 4 en 1 Groupe 0+","v":[{"r":"521002897","d":"Grey","k":"grey","p":59.95}]},{"g":"gold","c":"accessoires","s":"Accessoires siège auto","n":"Kit de sécurité Sensorafe 4 en 1 Groupe 0+/1","v":[{"r":"521002899","d":"Grey","k":"grey","p":59.95}]},{"g":"gold","c":"accessoires","s":"Accessoires siège auto","n":"Porte gobelet pour siège auto","v":[{"r":"523001109","d":"Black","k":"black","p":29.95}]},{"g":"gold","c":"accessoires","s":"Accessoires siège auto","n":"ATON / CLOUD Pare-soleil","v":[{"r":"518002927","d":"Black","k":"black","p":29.95}]},{"g":"gold","c":"accessoires","s":"Accessoires siège auto","n":"ATON / CLOUD Moustiquaire","v":[{"r":"516405001","d":"Black","k":"black","p":29.95}]},{"g":"gold","c":"accessoires","s":"Accessoires siège auto","n":"ATON / CLOUD Habillage pluie","v":[{"r":"516404001","d":"Transparent","k":"transparent","p":29.95}]},{"g":"gold","c":"accessoires","s":"Accessoires siège auto","n":"CLOUD G Housse d’été","v":[{"r":"523001201","d":"Grey","k":"grey","p":59.95}]},{"g":"gold","c":"accessoires","s":"Accessoires siège auto","n":"SIRONA Gi Housse d'été","v":[{"r":"522004761","d":"Grey","k":"grey","p":59.95}]},{"g":"gold","c":"accessoires","s":"Accessoires siège auto","n":"PALLAS G Housse d'été","v":[{"r":"521002099","d":"Grey","k":"grey","p":59.95}]},{"g":"gold","c":"accessoires","s":"Accessoires siège auto","n":"SOLUTION G2 Housse d’été","v":[{"r":"524002337","d":"Grey","k":"grey","p":59.95}]},{"g":"gold","c":"accessoires","s":"Accessoires siège auto","n":"SIRONA G insert nouveau-né","v":[{"r":"524001743","d":"Black","k":"black","p":49.95},{"r":"524001747","d":"Grey","k":"grey","p":49.95}]},{"g":"gold","c":"home","s":"Home","n":"LEMO 4in1 SET","v":[{"r":"521003191","d":"Pearl Pink","k":"light pink","p":359.95},{"r":"521003199","d":"Stone Blue","k":"mid blue","p":359.95},{"r":"521003207","d":"Stunning Black","k":"black","p":359.95},{"r":"521003215","d":"Suede Grey","k":"mid grey","p":359.95},{"r":"521003223","d":"Sand White","k":"white","p":359.95},{"r":"521004829","d":"All White","k":"white","p":359.95}]},{"g":"gold","c":"home","s":"Home","n":"LEMO 3in1 SET","v":[{"r":"521003161","d":"Pearl Pink","k":"light pink","p":289.95},{"r":"521003167","d":"Stone Blue","k":"mid blue","p":289.95},{"r":"521003173","d":"Stunning Black","k":"black","p":289.95},{"r":"521003179","d":"Suede Grey","k":"mid grey","p":289.95},{"r":"521003185","d":"Sand White","k":"white","p":289.95},{"r":"521004821","d":"All White","k":"white","p":289.95}]},{"g":"gold","c":"home","s":"Home","n":"LEMO","v":[{"r":"522001535","d":"Pearl Pink","k":"light pink","p":239.95},{"r":"522001541","d":"Stone Blue","k":"mid blue","p":239.95},{"r":"522001547","d":"Stunning Black","k":"black","p":239.95},{"r":"522001553","d":"Suede Grey","k":"mid grey","p":239.95},{"r":"522001559","d":"Sand White","k":"white","p":239.95},{"r":"522001567","d":"All White","k":"white","p":239.95}]},{"g":"gold","c":"home","s":"Home","n":"CLICK&FOLD 4in1 SET","v":[{"r":"524000845","d":"Stunning Black","k":"black","p":359.95},{"r":"524000857","d":"All White","k":"white","p":359.95},{"r":"524000869","d":"All Natural","k":"light natural","p":359.95},{"r":"525000965","d":"All Natural Dark","k":"dark natural","p":359.95},{"r":"524000881","d":"Stone Blue","k":"mid blue","p":359.95}]},{"g":"gold","c":"home","s":"Home","n":"CLICK&FOLD 3in1 SET","v":[{"r":"524000797","d":"Stunning Black","k":"black","p":289.95},{"r":"524000809","d":"All White","k":"white","p":289.95},{"r":"524000821","d":"All Natural","k":"light natural","p":289.95},{"r":"525000963","d":"All Natural Dark","k":"dark natural","p":289.95},{"r":"524000833","d":"Stone Blue","k":"mid blue","p":289.95}]},{"g":"gold","c":"home","s":"Home","n":"CLICK&FOLD","v":[{"r":"524000969","d":"Stunning Black","k":"black","p":239.95},{"r":"524000979","d":"All White","k":"white","p":239.95},{"r":"524000989","d":"All Natural","k":"light natural","p":239.95},{"r":"525000961","d":"All Natural Dark","k":"dark natural","p":239.95},{"r":"524000999","d":"Stone Blue","k":"mid blue","p":239.95}]},{"g":"gold","c":"home","s":"Home","n":"IRIS 3in1 SET","v":[{"r":"525000643","d":"Stunning Black","k":"black","p":219.95},{"r":"525000653","d":"All White","k":"white","p":219.95},{"r":"525000663","d":"All Natural Light","k":"light natural","p":219.95},{"r":"526001821","d":"All Natural Dark","k":"dark natural","p":219.95}]},{"g":"gold","c":"home","s":"Home","n":"IRIS","v":[{"r":"525000673","d":"Stunning Black","k":"black","p":169.95},{"r":"525000683","d":"All White","k":"white","p":169.95},{"r":"525000693","d":"All Natural Light","k":"light natural","p":169.95},{"r":"526001831","d":"All Natural Dark","k":"dark natural","p":169.95}]},{"g":"gold","c":"home","s":"Home","n":"Bouncer","v":[{"r":"521003231","d":"Pearl Pink","k":"light pink","p":219.95},{"r":"521003239","d":"Stone Blue","k":"mid blue","p":219.95},{"r":"521003247","d":"Stunning Black","k":"black","p":219.95},{"r":"521003255","d":"Suede Grey","k":"mid grey","p":219.95},{"r":"521003263","d":"Sand White","k":"white","p":219.95},{"r":"524000945","d":"Canvas White","k":"light beige","p":219.95},{"r":"524000957","d":"Almond Beige","k":"beige","p":219.95}]},{"g":"gold","c":"accessoires","s":"Accessoires Home","n":"LEMO Coussin confort","v":[{"r":"521003275","d":"Pearl Pink","k":"light pink","p":49.95},{"r":"521003281","d":"Stone Blue","k":"mid blue","p":49.95},{"r":"521003287","d":"Stunning Black","k":"black","p":49.95},{"r":"521003293","d":"Suede Grey","k":"mid grey","p":49.95},{"r":"524001715","d":"Canvas White","k":"light beige","p":49.95},{"r":"524001721","d":"Almond Beige","k":"beige","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires Home","n":"CLICK&FOLD Coussin confort","v":[{"r":"524000893","d":"Stunning Black","k":"black","p":49.95},{"r":"524000901","d":"Stone Blue","k":"mid blue","p":49.95},{"r":"524000909","d":"Canvas White","k":"light beige","p":49.95},{"r":"524000917","d":"Almond Beige","k":"beige","p":49.95}]},{"g":"gold","c":"accessoires","s":"Accessoires Home","n":"LEMO Training Tower","v":[{"r":"523001319","d":"Pearl Pink","k":"light pink","p":79.95},{"r":"523001321","d":"Stone Blue","k":"mid blue","p":79.95},{"r":"523001323","d":"Stunning Black","k":"black","p":79.95},{"r":"523001325","d":"Suede Grey","k":"mid grey","p":79.95},{"r":"523001327","d":"All White","k":"white","p":79.95}]},{"g":"gold","c":"accessoires","s":"Accessoires Home","n":"Socle pour bouncer","v":[{"r":"522000501","d":"Pearl Pink","k":"light pink","p":99.95},{"r":"522000507","d":"Stone Blue","k":"mid blue","p":99.95},{"r":"522000513","d":"Stunning Black","k":"black","p":99.95},{"r":"522000519","d":"Suede Grey","k":"mid grey","p":99.95},{"r":"522000525","d":"Sand White","k":"white","p":99.95}]},{"g":"gold","c":"accessoires","s":"Accessoires Home","n":"LEMO Set d’adaptateurs","v":[{"r":"522000485","d":"Light Grey","k":"light grey","p":24.95}]},{"g":"gold","c":"accessoires","s":"Accessoires Home","n":"CLICK&FOLD Set d’adaptateurs","v":[{"r":"524000925","d":"White","k":"white","p":24.95}]},{"g":"gold","c":"accessoires","s":"Accessoires Home","n":"Harnais","v":[{"r":"521003271","d":"Light Grey","k":"light grey","p":44.95}]},{"g":"cbx","c":"siege","s":"Siège auto Groupe 0+","n":"ATON B2 I-SIZE","v":[{"r":"521003589","d":"Black","k":"black","p":169.95},{"r":"521003591","d":"Red","k":"red","p":169.95},{"r":"521003593","d":"Grey","k":"grey","p":169.95},{"r":"521003595","d":"Blue","k":"blue","p":169.95}]},{"g":"cbx","c":"siege","s":"Siège auto Groupe 0+","n":"ATON B2 I-SIZE incl. BASE ONE","v":[{"r":"521004431","d":"Black","k":"black","p":259.95},{"r":"521004433","d":"Red","k":"red","p":259.95},{"r":"521004435","d":"Grey","k":"grey","p":259.95},{"r":"521004437","d":"Blue","k":"blue","p":259.95}]},{"g":"cbx","c":"siege","s":"Siège auto Groupe 0+","n":"BASE ONE","v":[{"r":"521003065","d":"Black","k":"black","p":109.95}]},{"g":"cbx","c":"siege","s":"Siège auto Groupe 1/2/3","n":"PALLAS B I-SIZE","v":[{"r":"523001217","d":"Black","k":"black","p":249.95},{"r":"523001219","d":"Red","k":"red","p":249.95},{"r":"523001221","d":"Grey","k":"grey","p":249.95},{"r":"523001223","d":"Blue","k":"blue","p":249.95}]},{"g":"cbx","c":"siege","s":"Siège auto Groupe 1/2/3","n":"PALLAS B3 I-SIZE","v":[{"r":"523001233","d":"Black","k":"black","p":269.95},{"r":"523001235","d":"Red","k":"red","p":269.95},{"r":"523001237","d":"Grey","k":"grey","p":269.95},{"r":"523001239","d":"Blue","k":"blue","p":269.95}]},{"g":"cbx","c":"siege","s":"Siège auto Groupe 2/3","n":"SOLUTION B I-FIX","v":[{"r":"522003871","d":"Black","k":"black","p":189.95},{"r":"522003873","d":"Red","k":"red","p":189.95},{"r":"522003875","d":"Grey","k":"grey","p":189.95},{"r":"522003877","d":"Blue","k":"blue","p":189.95}]},{"g":"cbx","c":"siege","s":"Siège auto Groupe 2/3","n":"SOLUTION B3 I-FIX","v":[{"r":"522003887","d":"Black","k":"black","p":209.95},{"r":"522003889","d":"Red","k":"red","p":209.95},{"r":"522003891","d":"Grey","k":"grey","p":209.95},{"r":"522003893","d":"Blue","k":"blue","p":209.95}]},{"g":"cbx","c":"siege","s":"Siège auto Groupe 2/3","n":"SOLUTION X I-FIX","v":[{"r":"522003961","d":"Black","k":"black","p":229.95},{"r":"522003959","d":"Red","k":"red","p":229.95},{"r":"522003967","d":"Grey","k":"grey","p":229.95},{"r":"522003963","d":"Blue","k":"blue","p":229.95}]},{"g":"cbx","c":"accessoires","s":"Accessoires siège auto","n":"Sangle de fixation","v":[{"r":"511410001","d":"Black","k":"black","p":24.95}]},{"g":"cbx","c":"accessoires","s":"Accessoires siège auto","n":"Isofix Guides","v":[{"r":"50054001","d":"Black","k":"black","p":14.95}]},{"g":"cbx","c":"accessoires","s":"Accessoires siège auto","n":"Kit de sécurité Sensorsafe 4 en 1 Groupe 0+","v":[{"r":"521002897","d":"Grey","k":"grey","p":59.95}]},{"g":"cbx","c":"accessoires","s":"Accessoires siège auto","n":"Kit de sécurité Sensorafe 4 en 1 Groupe 0+/1","v":[{"r":"521002899","d":"Grey","k":"grey","p":59.95}]},{"g":"cbx","c":"accessoires","s":"Accessoires siège auto","n":"Porte gobelet pour siège auto","v":[{"r":"525000737","d":"Black","k":"black","p":29.95}]},{"g":"cbx","c":"accessoires","s":"Accessoires siège auto","n":"SOLUTION X Housse d’été","v":[{"r":"521002105","d":"White","k":"white","p":49.95}]}];
+const GAMMES = {platinum:"Cybex Platinum", gold:"Cybex Gold", cbx:"CBX by Cybex"};
+const CATS = {poussette:"Poussettes", siege:"Sièges auto", home:"Home", carrier:"Carriers", accessoires:"Accessoires"};
+const COLORS = {"beige":"#d9c7a7","black":"#1d1d1f","blue":"#3a6fb0","brown":"#7a5235","chrome":"linear-gradient(135deg,#e9ebee,#9ea3aa 50%,#e9ebee)","dark brown":"#4a3222","dark green":"#2f4a3a","dark grey":"#4a4d52","dark natural":"#a08a6a","dark pink":"#b8607a","dark yellow":"#c9a227","green":"#5c8a5a","grey":"#8d9096","khaki":"#7d7a4f","light beige":"#ece2cf","light blue":"#a9c8e6","light brown":"#a9825f","light grey":"#d3d5d8","light natural":"#e3d6bd","light pink":"#f1c6cf","medium blue":"#5b86b8","mid blue":"#5b86b8","mid green":"#6f9a6c","mid grey":"#9a9ca1","multicolor":"conic-gradient(#e05a4f,#e8c547,#5fb37a,#4f8be0,#a35fe0,#e05a4f)","navy":"#23345a","navy blue":"#23345a","none":"repeating-linear-gradient(45deg,#ccc 0 3px,#fff 3px 6px)","red":"#b3332e","rosegold":"linear-gradient(135deg,#f0c9b9,#c98f7c)","silver":"linear-gradient(135deg,#f1f2f4,#b5b8bd)","transparent":"repeating-conic-gradient(#ddd 0 25%,#fff 0 50%) 50%/10px 10px","turquoise":"#3fb2b0","white":"#ffffff","yellow green":"#a8b84a"};
+
+// Index
+const BYREF = {};
+DATA.forEach((m,i)=>{ m.id=i; m.v.forEach(v=>{ BYREF[v.r]={m,v}; }); m.idx=norm([m.n,m.s,GAMMES[m.g],CATS[m.c],...m.v.map(v=>v.d+" "+v.r)].join(" ")); });
+function norm(s){return s.normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/ÿ/g,"y").toLowerCase();}
+const eur = new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR"});
+const fmt = n => eur.format(n);
+const r2 = n => Math.round(n*100+1e-6)/100;
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+// Stockage local (panier de cet appareil)
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+let cart = load("salon-cart",{client:"",pct:10,lines:[]});
+let offers = {};           // ref -> {t:"pct"|"prix", v:number}
+let offersShared = false;  // true quand les offres viennent de la base partagée
+let canEditOffers = true;
+let offersDoc = null;
+
+// Prix
+function unitPrice(ref, mode){
+  const {v} = BYREF[ref]; const o = offers[ref];
+  const m = mode || "auto";
+  if(m==="auto"){
+    if(o) return o.t==="prix" ? r2(o.v) : r2(v.p*(1-o.v/100));
+    return r2(v.p*(1-cart.pct/100));
+  }
+  if(m==="offre" && o) return o.t==="prix" ? r2(o.v) : r2(v.p*(1-o.v/100));
+  return r2(v.p*(1-Number(m)/100));
+}
+function offerLabel(o){return o.t==="prix" ? "Prix salon "+fmt(o.v) : "−"+o.v+" %";}
+
+// Catalogue
+const $ = id => document.getElementById(id);
+const sel = {}; // model id -> variant index
+let FORCED=false;
+const openCats = new Set(load("salon-open",["platinum|poussette"]));
+function renderCatalog(){
+  const q = norm($("q").value.trim()); const g=$("fG").value; const c=$("fC").value;
+  $("clearQ").hidden = !q;
+  const words = q.split(/\s+/).filter(Boolean);
+  const list = DATA.filter(m=>(!g||m.g===g)&&(!c||m.c===c)&&words.every(w=>m.idx.includes(w)));
+  const forceOpen = words.length>0 || !!(g && c); FORCED=forceOpen;
+  let html="";
+  for(const gk of Object.keys(GAMMES)){
+    const inG = list.filter(m=>m.g===gk); if(!inG.length) continue;
+    html += `<section class="gamme"><div class="gamme-h"><h2>${GAMMES[gk]}</h2><span class="tag ${gk}">${inG.length} modèles</span></div>`;
+    for(const ck of Object.keys(CATS)){
+      const inC = inG.filter(m=>m.c===ck); if(!inC.length) continue;
+      const key=gk+"|"+ck; const open = forceOpen || openCats.has(key);
+      html += `<details class="cat" data-key="${key}" ${open?"open":""}><summary><span>${CATS[ck]}<span class="count">${inC.length}</span></span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></summary>`;
+      const subs = [...new Set(inC.map(m=>m.s))];
+      for(const s of subs){
+        const inS = inC.filter(m=>m.s===s);
+        if(subs.length>1 || s!==CATS[ck]) html += `<div class="sub-h">${esc(s)}</div>`;
+        html += `<div class="grid">${inS.map(card).join("")}</div>`;
+      }
+      html += `</details>`;
+    }
+    html += `</section>`;
+  }
+  if(!list.length) html = `<div class="empty">Aucun produit ne correspond à « ${esc($("q").value)} ». Vérifiez l'orthographe ou cherchez par référence (ex. 526000201).</div>`;
+  $("catalog").innerHTML = html;
+  $("countInfo").textContent = list.length+" modèles · "+list.reduce((a,m)=>a+m.v.length,0)+" références";
+}
+function card(m){
+  let vi = sel[m.id];
+  if(vi===undefined){ // si la recherche cible une référence ou un coloris, on présélectionne
+    const q = norm($("q").value.trim());
+    vi = q ? Math.max(0,m.v.findIndex(v=>norm(v.r+" "+v.d).includes(q))) : 0;
+  }
+  const v = m.v[vi]; const o = offers[v.r]; const hasOffer = m.v.some(x=>offers[x.r]);
+  const net = unitPrice(v.r,"auto"); const disc = net < v.p;
+  const sw = m.v.length>1 || v.d ? `<div class="swatches">${m.v.map((x,i)=>`<button type="button" class="sw" data-m="${m.id}" data-i="${i}" aria-pressed="${i===vi}" title="${esc(x.d||x.k)}" aria-label="${esc(x.d||x.k)}" style="background:${COLORS[x.k]||"#bbb"}"></button>`).join("")}</div>` : "";
+  return `<article class="card">
+    <div class="meta"><span class="tag ${m.g}">${m.g==="cbx"?"CBX":m.g==="gold"?"Gold":"Platinum"}</span>${m.new?'<span class="badge new">Nouveau</span>':""}${hasOffer?'<span class="badge offer">Offre salon</span>':""}</div>
+    <h3>${esc(m.n)}</h3>
+    ${sw}
+    <div class="design">${v.d?`<b>${esc(v.d)}</b> · `:""}<span class="mono">${v.r}</span>${o?` · <span style="color:var(--sale);font-weight:600">${offerLabel(o)}</span>`:""}</div>
+    <div class="pricerow">
+      <div class="prices">${disc?`<span class="full num">${fmt(v.p)}</span>`:""}<span class="net num ${disc?"sale":""}">${fmt(net)}</span></div>
+      <button type="button" class="add" data-add="${v.r}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>Ajouter</button>
+    </div>
+  </article>`;
+}
+
+// Panier
+function addToCart(ref){
+  const l = cart.lines.find(x=>x.r===ref && x.mode==="auto");
+  if(l) l.q++; else cart.lines.push({r:ref,q:1,mode:"auto"});
+  persist(); renderCart();
+  const {m,v}=BYREF[ref]; toast("Ajouté : "+m.n+(v.d?" · "+v.d:""));
+}
+function totals(){
+  let full=0, net=0;
+  for(const l of cart.lines){ const {v}=BYREF[l.r]||{}; if(!v) continue; full+=v.p*l.q; net+=unitPrice(l.r,l.mode)*l.q; }
+  return {full:r2(full), net:r2(net), save:r2(full-net)};
+}
+function renderCart(){
+  document.querySelectorAll("#pctSeg button").forEach(b=>b.setAttribute("aria-pressed", String(Number(b.dataset.p)===cart.pct)));
+  $("client").value = cart.client||"";
+  cart.lines = cart.lines.filter(l=>BYREF[l.r]);
+  if(!cart.lines.length){
+    $("lines").innerHTML = `<div class="cart-empty">Le panier est vide.<br>Touchez « Ajouter » sur un produit pour commencer.</div>`;
+  } else {
+    $("lines").innerHTML = cart.lines.map((l,i)=>{
+      const {m,v}=BYREF[l.r]; const o=offers[l.r]; const u=unitPrice(l.r,l.mode);
+      const autoLbl = o ? "Offre salon ("+offerLabel(o)+")" : "Remise panier (−"+cart.pct+" %)";
+      return `<div class="line">
+        <div><div class="nm">${esc(m.n)}</div><div class="sub">${v.d?esc(v.d)+" · ":""}<span class="mono">${v.r}</span> · ${GAMMES[m.g]}</div></div>
+        <div class="lp"><div class="full num">${u<v.p?fmt(v.p*l.q):""}</div><div class="net num ${u<v.p?"sale":""}" style="font-size:16px">${fmt(r2(u*l.q))}</div>${l.q>1?`<div class="sub num">${fmt(u)} / u.</div>`:""}</div>
+        <div class="ctrl">
+          <div class="qty"><button type="button" data-q="${i}" data-d="-1" aria-label="Retirer un">−</button><span class="num">${l.q}</span><button type="button" data-q="${i}" data-d="1" aria-label="Ajouter un">+</button></div>
+          <select data-mode="${i}" aria-label="Prix appliqué">
+            <option value="auto" ${l.mode==="auto"?"selected":""}>${autoLbl}</option>
+            <option value="0" ${l.mode==="0"?"selected":""}>Prix plein</option>
+            <option value="10" ${l.mode==="10"?"selected":""}>−10 %</option>
+            <option value="15" ${l.mode==="15"?"selected":""}>−15 %</option>
+            <option value="20" ${l.mode==="20"?"selected":""}>−20 %</option>
+          </select>
+          <button type="button" class="x" data-rm="${i}">Retirer</button>
+        </div>
+      </div>`;
+    }).join("");
+  }
+  const t = totals(); const n = cart.lines.reduce((a,l)=>a+l.q,0);
+  $("tFull").textContent=fmt(t.full); $("tNet").textContent=fmt(t.net); $("tSave").textContent=fmt(t.save);
+  $("mbCount").textContent = n? `Panier · ${n} article${n>1?"s":""}` : "Panier";
+  $("mbTotal").textContent = fmt(t.net);
+}
+function persist(){ save("salon-cart",cart); }
+function recap(){
+  const t=totals(); const out=[];
+  out.push("Panier salon"+(cart.client?" – "+cart.client:"")+" – "+new Date().toLocaleDateString("fr-FR"));
+  out.push("");
+  for(const l of cart.lines){ const {m,v}=BYREF[l.r]; const u=unitPrice(l.r,l.mode);
+    out.push(`${l.q} × ${m.n}${v.d?" – "+v.d:""} (réf. ${v.r})`);
+    out.push(`   Prix plein ${fmt(v.p*l.q)} → ${fmt(r2(u*l.q))}`); }
+  out.push(""); out.push("Total prix plein : "+fmt(t.full)); out.push("Économie : "+fmt(t.save)); out.push("Total remisé : "+fmt(t.net));
+  return out.join("\n");
+}
+
+// Offres (partagées via la base de l'artefact quand elle est disponible)
+function renderOffers(){
+  const refs = Object.keys(offers).filter(r=>BYREF[r]);
+  $("offerCount").textContent = refs.length? "("+refs.length+")" : "";
+  const groups = {};
+  refs.forEach(r=>{ const {m}=BYREF[r]; (groups[m.id]=groups[m.id]||[]).push(r); });
+  $("olist").innerHTML = refs.length ? Object.entries(groups).map(([id,rs])=>{
+    const m=DATA[id];
+    return rs.map(r=>{const v=BYREF[r].v;return `<div class="orow"><div><div style="font-weight:600">${esc(m.n)}</div><div class="sub" style="font-size:12.5px;color:var(--muted)">${esc(v.d||"")} · <span class="mono">${r}</span> · plein ${fmt(v.p)}</div></div><span class="val num">${offerLabel(offers[r])}</span>${canEditOffers?`<button class="btn ghost" type="button" data-del="${r}" aria-label="Supprimer l'offre">Supprimer</button>`:"<span></span>"}</div>`}).join("");
+  }).join("") : `<div class="note">Aucune offre particulière pour l'instant. Tous les produits suivent la remise du panier (−10 %, −15 % ou −20 %).</div>`;
+  $("editor").hidden = !canEditOffers;
+}
+let writing = Promise.resolve();
+function commitOffers(next){
+  const prev = offers; offers = next; renderAll();
+  if(offersShared && offersDoc){
+    writing = writing.then(()=>offersDoc.set({items:next})).then(()=>toast("Offre enregistrée pour toute l'équipe")).catch(e=>{
+      offers = prev; renderAll();
+      if(e && e.code==="invalid_argument"){ canEditOffers=false; renderOffers(); toast("Vous n'avez pas le droit de modifier les offres"); }
+      else toast("L'offre n'a pas pu être enregistrée. Réessayez.");
+    });
+  } else { save("salon-offers",next); toast("Offre enregistrée sur cet appareil"); }
+}
+let ofModel=null;
+function offerSearch(){
+  const q=norm($("oq").value.trim()); const box=$("ores");
+  if(!q){box.hidden=true;return;}
+  const words=q.split(/\s+/);
+  const hits=DATA.filter(m=>words.every(w=>m.idx.includes(w))).slice(0,8);
+  box.hidden=false;
+  box.innerHTML = hits.length? hits.map(m=>`<button type="button" data-pick="${m.id}"><span>${esc(m.n)} <span style="color:var(--muted);font-size:13px">· ${GAMMES[m.g]}</span></span><span class="num" style="color:var(--muted)">${fmt(Math.min(...m.v.map(v=>v.p)))}</span></button>`).join("") : `<div class="note">Aucun produit trouvé.</div>`;
+}
+function pickModel(id){
+  ofModel=DATA[id]; $("ores").hidden=true; $("oform").hidden=false;
+  $("ofName").textContent=ofModel.n; $("ofRange").textContent=GAMMES[ofModel.g]+" · "+CATS[ofModel.c]+" · "+ofModel.s;
+  $("ofVar").innerHTML = (ofModel.v.length>1?`<option value="*">Tous les coloris (${ofModel.v.length})</option>`:"")+ofModel.v.map(v=>`<option value="${v.r}">${esc(v.d||"Unique")} – ${v.r} – ${fmt(v.p)}</option>`).join("");
+  $("ofVal").value=""; $("ofVal").focus();
+}
+
+// Rendu & événements
+function renderAll(){ renderCatalog(); renderCart(); renderOffers(); }
+let tt; function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("on"); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove("on"),1800); }
+
+$("q").addEventListener("input",renderCatalog);
+$("clearQ").onclick=()=>{$("q").value="";renderCatalog();$("q").focus();};
+$("fG").onchange=renderCatalog; $("fC").onchange=renderCatalog;
+$("catalog").addEventListener("click",e=>{
+  const s=e.target.closest(".sw"); if(s){ sel[s.dataset.m]=Number(s.dataset.i); renderCatalog(); return; }
+  const a=e.target.closest("[data-add]"); if(a){ addToCart(a.dataset.add); a.classList.add("done"); a.innerHTML="✓ Ajouté"; setTimeout(renderCatalog,700); }
+});
+$("catalog").addEventListener("toggle",e=>{ const d=e.target; if(!d.dataset||!d.dataset.key||FORCED) return; if(d.open) openCats.add(d.dataset.key); else openCats.delete(d.dataset.key); save("salon-open",[...openCats]); },true);
+$("pctSeg").onclick=e=>{const b=e.target.closest("button"); if(!b) return; cart.pct=Number(b.dataset.p); persist(); renderCart(); renderCatalog();};
+$("client").oninput=e=>{cart.client=e.target.value; persist();};
+$("lines").addEventListener("click",e=>{
+  const q=e.target.closest("[data-q]"); if(q){ const l=cart.lines[q.dataset.q]; l.q+=Number(q.dataset.d); if(l.q<1) cart.lines.splice(q.dataset.q,1); persist(); renderCart(); return; }
+  const rm=e.target.closest("[data-rm]"); if(rm){ cart.lines.splice(rm.dataset.rm,1); persist(); renderCart(); }
+});
+$("lines").addEventListener("change",e=>{ const s=e.target.closest("[data-mode]"); if(s){ cart.lines[s.dataset.mode].mode=s.value; persist(); renderCart(); }});
+$("copy").onclick=()=>{ if(!cart.lines.length){toast("Le panier est vide");return;} const txt=recap();
+  const fallback=()=>{const ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("Récapitulatif copié");}catch(e){toast("Copie impossible sur cet appareil");}ta.remove();};
+  try{ navigator.clipboard.writeText(txt).then(()=>toast("Récapitulatif copié"),fallback);}catch(e){fallback();} };
+let resetArmed=false;
+$("reset").onclick=()=>{ if(!cart.lines.length && !cart.client){return;} if(!resetArmed){resetArmed=true;$("reset").textContent="Confirmer : vider";setTimeout(()=>{resetArmed=false;$("reset").textContent="Nouveau panier";},3000);return;}
+  resetArmed=false; $("reset").textContent="Nouveau panier"; cart={client:"",pct:cart.pct,lines:[]}; persist(); renderCart(); toast("Nouveau panier prêt"); };
+$("openCart").onclick=()=>$("cart").classList.add("open");
+$("closeCart").onclick=()=>$("cart").classList.remove("open");
+$("openOffers").onclick=()=>{$("offers").hidden=false;};
+$("closeOffers").onclick=()=>{$("offers").hidden=true;};
+$("offers").addEventListener("click",e=>{ if(e.target.id==="offers") $("offers").hidden=true;
+  const p=e.target.closest("[data-pick]"); if(p) pickModel(p.dataset.pick);
+  const d=e.target.closest("[data-del]"); if(d){ const n={...offers}; delete n[d.dataset.del]; commitOffers(n); }
+});
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ $("offers").hidden=true; $("cart").classList.remove("open"); }});
+$("oq").addEventListener("input",offerSearch);
+$("ofType").onchange=()=>{ $("ofValLabel").textContent = $("ofType").value==="prix"?"Prix salon TTC":"Remise (%)"; };
+$("ofCancel").onclick=()=>{ $("oform").hidden=true; ofModel=null; };
+$("oform").addEventListener("submit",e=>{ e.preventDefault(); if(!ofModel) return;
+  const t=$("ofType").value; const val=Number($("ofVal").value);
+  if(!(val>0) || (t==="pct" && val>=100)){ toast(t==="pct"?"Indiquez une remise entre 1 et 99 %":"Indiquez un prix supérieur à 0 €"); return; }
+  const refs = $("ofVar").value==="*" ? ofModel.v.map(v=>v.r) : [$("ofVar").value];
+  const n={...offers}; refs.forEach(r=>n[r]={t,v:r2(val)}); commitOffers(n);
+  $("oform").hidden=true; $("oq").value=""; ofModel=null;
+});
+
+// Démarrage : offres locales d'abord, puis offres partagées si la base répond
+offers = load("salon-offers",{});
+renderAll();
+$("syncNote").textContent = "Offres enregistrées sur cet appareil uniquement.";
+(async()=>{
+  try{
+    if(!window.claude || !claude.use) return;
+    const db = await claude.use("db"); if(!db) return;
+    const user = await claude.use("user");
+    try{ const ce = user ? await user.canEdit() : null; if(ce===false) canEditOffers=false; }catch(e){}
+    offersDoc = db.doc("config/offres");
+    const timer=setTimeout(()=>{ $("syncNote").textContent="Les offres partagées ne répondent pas encore. Vérifiez la connexion du salon."; },10000);
+    offersDoc.onSnapshot(snap=>{
+      if(!snap.metadata.fromCache) clearTimeout(timer);
+      offersShared = true;
+      offers = (snap.exists && snap.data().items) ? {...snap.data().items} : {};
+      $("syncNote").textContent = canEditOffers ? "Offres partagées : chaque modification s'applique aux tablettes de toute l'équipe." : "Offres définies par votre responsable. Elles s'appliquent automatiquement.";
+      renderAll();
+    }, err=>{ clearTimeout(timer); $("syncNote").textContent="Offres partagées indisponibles : elles sont enregistrées sur cet appareil uniquement."; offersShared=false; });
+  }catch(e){}
+})();
+</script>
