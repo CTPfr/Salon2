@@ -125,6 +125,31 @@ details.cat[open]>summary .chev{transform:rotate(90deg)}
 .tot.big{color:var(--ink);font-weight:700;font-size:22px;font-family:var(--f-display)}
 .tot.save{color:var(--ok);font-weight:600}
 .actions{display:flex;gap:8px;margin-top:6px}
+.sendgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.sendgrid .btn{justify-content:center;text-decoration:none;color:var(--ink);padding:12px 10px}
+.sendgrid .btn.primary{color:var(--accent-ink);grid-column:1/-1}
+.form textarea{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px;font-size:14px;line-height:1.45;resize:vertical;font-family:var(--f-body);width:100%}
+.overlay.present{justify-content:center;align-items:stretch;background:var(--bg)}
+.sheet{width:min(720px,100%);overflow-y:auto;padding:24px max(20px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));padding-top:calc(24px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:14px}
+.p-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.p-top h2{margin:2px 0 0;font-family:var(--f-display);font-size:26px;text-wrap:balance}
+.p-eyebrow{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.p-line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.p-line .nm{font-weight:700;font-size:16px}
+.p-line .sub{font-size:13px;color:var(--muted)}
+.p-line .lp{text-align:right}
+.p-tot{display:flex;flex-direction:column;gap:6px;padding-top:6px}
+.p-tot .tot.big{font-size:28px}
+.savestate{font-size:12.5px;color:var(--muted);min-height:16px}
+.savestate.dirty{color:var(--gold)}
+.hlist{display:flex;flex-direction:column;gap:10px}
+.hcard{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;background:var(--surface)}
+.hcard.current{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.hcard .hn{font-weight:700;font-size:15px;overflow-wrap:anywhere}
+.hcard .hm{font-size:12.5px;color:var(--muted)}
+.hcard .ht{text-align:right;font-weight:700;font-family:var(--f-display);font-size:17px}
+.hcard .hb{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.hcard .hb .btn{padding:7px 12px;font-size:13px}
 .actions .btn{flex:1;justify-content:center}
 .cart-empty{color:var(--muted);text-align:center;padding:40px 10px;font-size:14px}
 .mobilebar{display:none}
@@ -191,7 +216,7 @@ details.cat[open]>summary .chev{transform:rotate(90deg)}
   .tot.big{font-size:20px}
   .actions .btn{padding:11px 10px;font-size:14px}
   .form .two{grid-template-columns:1fr}
-  .form select,.form input,#oq{font-size:16px}
+  .form select,.form input,.form textarea,#oq,#hq{font-size:16px}
   .orow{grid-template-columns:minmax(0,1fr) auto}
   .orow .btn{grid-column:1/-1;justify-self:start;padding:6px 0}
 }
@@ -239,7 +264,10 @@ details.cat[open]>summary .chev{transform:rotate(90deg)}
     <div class="cart-h">
       <div class="row">
         <h2>Panier</h2>
-        <button class="btn ghost closecart" id="closeCart" type="button" aria-label="Fermer le panier">Fermer</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="openHist" type="button">Mes paniers <span id="histCount" class="num"></span></button>
+          <button class="btn ghost closecart" id="closeCart" type="button" aria-label="Fermer le panier">Fermer</button>
+        </div>
       </div>
       <div class="seg" role="group" aria-label="Remise du panier" id="pctSeg">
         <button type="button" data-p="0">0 %</button>
@@ -247,7 +275,8 @@ details.cat[open]>summary .chev{transform:rotate(90deg)}
         <button type="button" data-p="15">−15 %</button>
         <button type="button" data-p="20">−20 %</button>
       </div>
-      <input id="client" type="text" placeholder="Nom du client (facultatif)" autocomplete="off">
+      <input id="client" type="text" placeholder="Nom du panier (ex. Mme Martin – Baby Salon)" autocomplete="off" aria-label="Nom du panier">
+      <div class="savestate" id="saveState"></div>
     </div>
     <div class="lines" id="lines"></div>
     <div class="totals">
@@ -255,14 +284,68 @@ details.cat[open]>summary .chev{transform:rotate(90deg)}
       <div class="tot save"><span>Économie</span><span class="num" id="tSave">0,00 €</span></div>
       <div class="tot big"><span>Total remisé</span><span class="num" id="tNet">0,00 €</span></div>
       <div class="actions">
-        <button class="btn" id="copy" type="button">Copier le récapitulatif</button>
-        <button class="btn danger" id="reset" type="button">Nouveau panier</button>
+        <button class="btn primary" id="saveCart" type="button">Enregistrer</button>
+        <button class="btn" id="openSend" type="button">Envoyer</button>
+        <button class="btn danger" id="reset" type="button">Nouveau</button>
       </div>
     </div>
   </aside>
 </div>
 <div class="mobilebar"><button type="button" id="openCart"><span id="mbCount">Panier</span><span class="num" id="mbTotal">0,00 €</span></button></div>
 <div class="toast" id="toast" role="status"></div>
+
+<div class="overlay" id="send" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="sendTitle">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <h2 id="sendTitle">Envoyer au client</h2>
+      <button class="btn ghost" id="closeSend" type="button">Fermer</button>
+    </div>
+    <div class="form">
+      <div class="two">
+        <label>Téléphone du client<input id="cPhone" type="tel" inputmode="tel" placeholder="06 12 34 56 78" autocomplete="off"></label>
+        <label>E-mail du client<input id="cMail" type="email" inputmode="email" placeholder="client@exemple.fr" autocomplete="off"></label>
+      </div>
+    </div>
+    <div class="sendgrid">
+      <button class="btn primary" type="button" id="shareNative" hidden>Partager…</button>
+      <a class="btn" id="lnkWa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+      <a class="btn" id="lnkSms" href="#">SMS</a>
+      <a class="btn" id="lnkMail" href="#">E-mail</a>
+      <button class="btn" type="button" id="copy">Copier le message</button>
+      <button class="btn" type="button" id="showClient">Montrer au client</button>
+    </div>
+    <div class="form"><label>Message envoyé (modifiable)<textarea id="msg" rows="10"></textarea></label></div>
+    <p class="hint" id="sendHint">Si l'application d'envoi ne s'ouvre pas, touchez « Copier le message » puis collez-le dans votre messagerie.</p>
+  </div>
+</div>
+
+<div class="overlay present" id="present" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pTitle">
+    <div class="p-top"><div><div class="p-eyebrow" id="pDate"></div><h2 id="pTitle"></h2></div><button class="btn" id="closePresent" type="button">Fermer</button></div>
+    <div id="pLines"></div>
+    <div class="p-tot">
+      <div class="tot"><span>Prix plein</span><span class="num" id="pFull"></span></div>
+      <div class="tot save"><span>Votre économie</span><span class="num" id="pSave"></span></div>
+      <div class="tot big"><span>Total</span><span class="num" id="pNet"></span></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="hist" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="histTitle">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <h2 id="histTitle">Mes paniers</h2>
+      <button class="btn ghost" id="closeHist" type="button">Fermer</button>
+    </div>
+    <p class="hint">Les paniers enregistrés restent ici. Ouvrez-en un pour le modifier ou le montrer au client ; les prix sont recalculés avec les offres en cours.</p>
+    <div class="field">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="hq" type="search" placeholder="Rechercher un panier par nom" autocomplete="off">
+    </div>
+    <div class="note" id="histNote"></div>
+    <div class="hlist" id="hlist"></div>
+  </div>
+</div>
 
 <div class="overlay" id="offers" hidden>
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="offersTitle">
@@ -314,6 +397,9 @@ const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
 function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 let cart = load("salon-cart",{client:"",pct:10,lines:[]});
+let savedCarts = load("salon-savedCarts",[]);   // [{id,name,pct,lines,savedAt,full,net,n}]
+let histDoc = null;                        // copie privée dans la base (version en ligne)
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 let offers = {};           // ref -> {t:"pct"|"prix", v:number}
 let offersShared = false;  // true quand les offres viennent de la base partagée
 let canEditOffers = true;
@@ -429,11 +515,112 @@ function renderCart(){
   $("tFull").textContent=fmt(t.full); $("tNet").textContent=fmt(t.net); $("tSave").textContent=fmt(t.save);
   $("mbCount").textContent = n? `Panier · ${n} article${n>1?"s":""}` : "Panier";
   $("mbTotal").textContent = fmt(t.net);
+  renderSaveState();
 }
-function persist(){ save("salon-cart",cart); }
+function persist(){ cart.dirty = true; save("salon-cart",cart); renderSaveState(); }
+function stamp(ts){ const d=new Date(ts); return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"})+" à "+d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}); }
+function renderSaveState(){
+  const el=$("saveState"); const h=cart.id && savedCarts.find(x=>x.id===cart.id);
+  if(h && !cart.dirty){ el.textContent="Enregistré le "+stamp(h.savedAt); el.className="savestate"; }
+  else if(h){ el.textContent="Modifications non enregistrées"; el.className="savestate dirty"; }
+  else if(cart.lines.length){ el.textContent="Panier pas encore enregistré"; el.className="savestate dirty"; }
+  else { el.textContent=""; el.className="savestate"; }
+  $("histCount").textContent = savedCarts.length ? "("+savedCarts.length+")" : "";
+}
+function storeHistory(){
+  save("salon-savedCarts",savedCarts);
+  if(histDoc){ histDoc.set({paniers:savedCarts}).catch(()=>{ histDoc=null; renderHistory(); }); }
+  renderHistory(); renderSaveState();
+}
+function saveCurrent(opts={}){
+  if(!cart.lines.length){ if(!opts.silent) toast("Ajoutez au moins un produit avant d'enregistrer"); return false; }
+  let name=(cart.client||"").trim();
+  if(!name){
+    if(!opts.silent){ toast("Donnez un nom au panier pour l'enregistrer"); $("client").focus(); return false; }
+    name = "Panier du "+stamp(Date.now()); cart.client=name;
+  }
+  const t=totals(); const n=cart.lines.reduce((a,l)=>a+l.q,0);
+  const entry={id:cart.id||uid(),name,pct:cart.pct,phone:cart.phone||"",mail:cart.mail||"",lines:cart.lines.map(l=>({r:l.r,q:l.q,mode:l.mode})),savedAt:Date.now(),full:t.full,net:t.net,n};
+  cart.id=entry.id; cart.dirty=false;
+  savedCarts = [entry, ...savedCarts.filter(h=>h.id!==entry.id)];
+  save("salon-cart",cart); storeHistory(); renderCart();
+  if(!opts.silent) toast("Panier « "+name+" » enregistré");
+  return true;
+}
+function openSaved(id){
+  const h=savedCarts.find(x=>x.id===id); if(!h) return;
+  if(cart.lines.length && cart.dirty && cart.id!==id) saveCurrent({silent:true});
+  cart={id:h.id,client:h.name,pct:h.pct,phone:h.phone||"",mail:h.mail||"",lines:h.lines.map(l=>({...l})),dirty:false};
+  save("salon-cart",cart); renderCart(); renderCatalog();
+  $("hist").hidden=true; $("cart").classList.add("open");
+  toast("Panier « "+h.name+" » ouvert");
+}
+function duplicateSaved(id){
+  const h=savedCarts.find(x=>x.id===id); if(!h) return;
+  if(cart.lines.length && cart.dirty) saveCurrent({silent:true});
+  cart={client:h.name+" (copie)",pct:h.pct,lines:h.lines.map(l=>({...l})),dirty:true};
+  save("salon-cart",cart); renderCart(); renderCatalog();
+  $("hist").hidden=true; $("cart").classList.add("open"); toast("Copie prête : renommez-la puis enregistrez");
+}
+const delArmed=new Set();
+function renderHistory(){
+  const q=norm(($("hq").value||"").trim());
+  const list=savedCarts.filter(h=>!q||norm(h.name).includes(q));
+  $("histNote").textContent = histDoc ? "Vos paniers sont sauvegardés dans votre compte : vous les retrouvez sur tous vos appareils." : "Vos paniers sont enregistrés sur cet appareil.";
+  $("hlist").innerHTML = list.length ? list.map(h=>{
+    const lost=h.lines.filter(l=>!BYREF[l.r]).length;
+    return `<div class="hcard ${h.id===cart.id?"current":""}">
+      <div><div class="hn">${esc(h.name)}</div><div class="hm">${stamp(h.savedAt)} · ${h.n} article${h.n>1?"s":""} · remise −${h.pct} %${lost?` · ${lost} réf. retirée${lost>1?"s":""} du tarif`:""}</div></div>
+      <div class="ht num">${fmt(h.net)}<div class="hm" style="font-family:var(--f-body);font-weight:500;text-decoration:line-through">${h.full>h.net?fmt(h.full):""}</div></div>
+      <div class="hb">
+        <button class="btn primary" type="button" data-hopen="${h.id}">${h.id===cart.id?"Panier en cours":"Ouvrir"}</button>
+        <button class="btn" type="button" data-hdup="${h.id}">Dupliquer</button>
+        <button class="btn ghost danger" type="button" data-hdel="${h.id}">${delArmed.has(h.id)?"Confirmer la suppression":"Supprimer"}</button>
+      </div></div>`;
+  }).join("") : `<div class="cart-empty">${savedCarts.length?"Aucun panier ne porte ce nom.":"Aucun panier enregistré pour l'instant.<br>Nommez un panier puis touchez « Enregistrer »."}</div>`;
+}
+function clientMessage(){
+  const t=totals(); const out=[];
+  out.push("Bonjour,"); out.push("");
+  out.push("Voici le récapitulatif de votre panier Cybex préparé avec vous sur le salon le "+new Date().toLocaleDateString("fr-FR")+" :"); out.push("");
+  for(const l of cart.lines){ const {m,v}=BYREF[l.r]; const u=unitPrice(l.r,l.mode); const tot=r2(u*l.q), full=r2(v.p*l.q);
+    out.push(`• ${l.q} × ${m.n}${v.d?" – "+v.d:""} (réf. ${v.r})`);
+    out.push(tot<full ? `   ${fmt(tot)} au lieu de ${fmt(full)}` : `   ${fmt(tot)}`); }
+  out.push("");
+  out.push("Total : "+fmt(t.net)+(t.save>0?" au lieu de "+fmt(t.full):""));
+  if(t.save>0) out.push("Votre économie : "+fmt(t.save));
+  out.push(""); out.push("Prix TTC. N'hésitez pas à revenir vers nous pour toute question."); out.push("À bientôt !");
+  return out.join("\n");
+}
+function waNumber(p){ let d=(p||"").replace(/[^0-9+]/g,""); if(d.startsWith("+")) d=d.slice(1); else if(d.startsWith("00")) d=d.slice(2); else if(/^0[1-9]\d{8}$/.test(d)) d="33"+d.slice(1); return d; }
+function updateSendLinks(){
+  const txt=$("msg").value; const ph=$("cPhone").value.trim(); const ml=$("cMail").value.trim();
+  const subj="Votre panier Cybex"+(cart.client?" – "+cart.client:"");
+  const n=waNumber(ph);
+  $("lnkWa").href="https://wa.me/"+(n||"")+"?text="+encodeURIComponent(txt);
+  $("lnkSms").href="sms:"+ph.replace(/[^0-9+]/g,"")+"?&body="+encodeURIComponent(txt);
+  $("lnkMail").href="mailto:"+encodeURIComponent(ml).replace(/%40/g,"@")+"?subject="+encodeURIComponent(subj)+"&body="+encodeURIComponent(txt);
+}
+function openSend(){
+  if(!cart.lines.length){ toast("Le panier est vide"); return; }
+  $("cPhone").value=cart.phone||""; $("cMail").value=cart.mail||"";
+  $("msg").value=clientMessage(); updateSendLinks();
+  $("shareNative").hidden = !(navigator.share);
+  $("send").hidden=false;
+}
+function openPresent(){
+  if(!cart.lines.length){ toast("Le panier est vide"); return; }
+  const t=totals();
+  $("pDate").textContent="Votre panier · "+new Date().toLocaleDateString("fr-FR");
+  $("pTitle").textContent=cart.client||"Votre sélection Cybex";
+  $("pLines").innerHTML=cart.lines.map(l=>{ const {m,v}=BYREF[l.r]; const u=unitPrice(l.r,l.mode); const tot=r2(u*l.q), full=r2(v.p*l.q);
+    return `<div class="p-line"><div><div class="nm">${l.q>1?l.q+" × ":""}${esc(m.n)}</div><div class="sub">${v.d?esc(v.d)+" · ":""}réf. <span class="mono">${v.r}</span></div></div><div class="lp">${tot<full?`<div class="full num">${fmt(full)}</div>`:""}<div class="net num ${tot<full?"sale":""}" style="font-size:18px">${fmt(tot)}</div></div></div>`; }).join("");
+  $("pFull").textContent=fmt(t.full); $("pSave").textContent=fmt(t.save); $("pNet").textContent=fmt(t.net);
+  $("present").hidden=false;
+}
 function recap(){
   const t=totals(); const out=[];
-  out.push("Panier salon"+(cart.client?" – "+cart.client:"")+" – "+new Date().toLocaleDateString("fr-FR"));
+  out.push((cart.client?cart.client:"Panier salon")+" – "+new Date().toLocaleDateString("fr-FR"));
   out.push("");
   for(const l of cart.lines){ const {m,v}=BYREF[l.r]; const u=unitPrice(l.r,l.mode);
     out.push(`${l.q} × ${m.n}${v.d?" – "+v.d:""} (réf. ${v.r})`);
@@ -495,17 +682,49 @@ $("catalog").addEventListener("click",e=>{
 $("catalog").addEventListener("toggle",e=>{ const d=e.target; if(!d.dataset||!d.dataset.key||FORCED) return; if(d.open) openCats.add(d.dataset.key); else openCats.delete(d.dataset.key); save("salon-open",[...openCats]); },true);
 $("pctSeg").onclick=e=>{const b=e.target.closest("button"); if(!b) return; cart.pct=Number(b.dataset.p); persist(); renderCart(); renderCatalog();};
 $("client").oninput=e=>{cart.client=e.target.value; persist();};
+$("saveCart").onclick=()=>saveCurrent();
+$("openHist").onclick=()=>{ $("hq").value=""; renderHistory(); $("hist").hidden=false; };
+$("closeHist").onclick=()=>{ $("hist").hidden=true; };
+$("hq").addEventListener("input",renderHistory);
+$("hist").addEventListener("click",e=>{
+  if(e.target.id==="hist"){ $("hist").hidden=true; return; }
+  const o=e.target.closest("[data-hopen]"); if(o){ openSaved(o.dataset.hopen); return; }
+  const d=e.target.closest("[data-hdup]"); if(d){ duplicateSaved(d.dataset.hdup); return; }
+  const x=e.target.closest("[data-hdel]"); if(x){ const id=x.dataset.hdel;
+    if(!delArmed.has(id)){ delArmed.add(id); renderHistory(); setTimeout(()=>{delArmed.delete(id);renderHistory();},3000); return; }
+    delArmed.delete(id); const h=savedCarts.find(y=>y.id===id); savedCarts=savedCarts.filter(y=>y.id!==id);
+    if(cart.id===id){ delete cart.id; cart.dirty=true; save("salon-cart",cart); }
+    storeHistory(); toast("Panier « "+(h?h.name:"")+" » supprimé"); }
+});
 $("lines").addEventListener("click",e=>{
   const q=e.target.closest("[data-q]"); if(q){ const l=cart.lines[q.dataset.q]; l.q+=Number(q.dataset.d); if(l.q<1) cart.lines.splice(q.dataset.q,1); persist(); renderCart(); return; }
   const rm=e.target.closest("[data-rm]"); if(rm){ cart.lines.splice(rm.dataset.rm,1); persist(); renderCart(); }
 });
 $("lines").addEventListener("change",e=>{ const s=e.target.closest("[data-mode]"); if(s){ cart.lines[s.dataset.mode].mode=s.value; persist(); renderCart(); }});
-$("copy").onclick=()=>{ if(!cart.lines.length){toast("Le panier est vide");return;} const txt=recap();
+$("openSend").onclick=openSend;
+$("closeSend").onclick=()=>{$("send").hidden=true;};
+$("send").addEventListener("click",e=>{ if(e.target.id==="send") $("send").hidden=true; });
+$("msg").addEventListener("input",updateSendLinks);
+$("cPhone").addEventListener("input",()=>{ cart.phone=$("cPhone").value; persist(); updateSendLinks(); });
+$("cMail").addEventListener("input",()=>{ cart.mail=$("cMail").value; persist(); updateSendLinks(); });
+$("lnkWa").addEventListener("click",()=>toast("Ouverture de WhatsApp…"));
+$("lnkSms").addEventListener("click",()=>toast("Ouverture des messages…"));
+$("lnkMail").addEventListener("click",e=>{ if(!$("cMail").value.trim()){ e.preventDefault(); toast("Indiquez l'e-mail du client"); $("cMail").focus(); return; } toast("Ouverture de la messagerie…"); });
+$("shareNative").onclick=()=>{ navigator.share({title:"Votre panier Cybex", text:$("msg").value}).catch(err=>{ if(err && err.name!=="AbortError") toast("Partage impossible ici : utilisez Copier le message"); }); };
+$("showClient").onclick=()=>{ $("send").hidden=true; openPresent(); };
+$("closePresent").onclick=()=>{ $("present").hidden=true; };
+$("copy").onclick=()=>{ if(!cart.lines.length){toast("Le panier est vide");return;} const txt=$("msg").value||clientMessage();
   const fallback=()=>{const ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("Récapitulatif copié");}catch(e){toast("Copie impossible sur cet appareil");}ta.remove();};
   try{ navigator.clipboard.writeText(txt).then(()=>toast("Récapitulatif copié"),fallback);}catch(e){fallback();} };
 let resetArmed=false;
-$("reset").onclick=()=>{ if(!cart.lines.length && !cart.client){return;} if(!resetArmed){resetArmed=true;$("reset").textContent="Confirmer : vider";setTimeout(()=>{resetArmed=false;$("reset").textContent="Nouveau panier";},3000);return;}
-  resetArmed=false; $("reset").textContent="Nouveau panier"; cart={client:"",pct:cart.pct,lines:[]}; persist(); renderCart(); toast("Nouveau panier prêt"); };
+$("reset").onclick=()=>{
+  if(!cart.lines.length && !cart.client){ return; }
+  const saved = cart.id && !cart.dirty;
+  if(!saved && !resetArmed){ resetArmed=true; $("reset").textContent="Enregistrer et vider ?"; setTimeout(()=>{resetArmed=false;$("reset").textContent="Nouveau";},3000); return; }
+  resetArmed=false; $("reset").textContent="Nouveau";
+  let msg="Nouveau panier prêt";
+  if(!saved && cart.lines.length){ saveCurrent({silent:true}); msg="Panier « "+cart.client+" » enregistré · nouveau panier prêt"; }
+  cart={client:"",pct:cart.pct,lines:[]}; save("salon-cart",cart); renderCart(); renderCatalog(); toast(msg); };
 $("openCart").onclick=()=>$("cart").classList.add("open");
 $("closeCart").onclick=()=>$("cart").classList.remove("open");
 $("openOffers").onclick=()=>{$("offers").hidden=false;};
@@ -514,7 +733,7 @@ $("offers").addEventListener("click",e=>{ if(e.target.id==="offers") $("offers")
   const p=e.target.closest("[data-pick]"); if(p) pickModel(p.dataset.pick);
   const d=e.target.closest("[data-del]"); if(d){ const n={...offers}; delete n[d.dataset.del]; commitOffers(n); }
 });
-document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ $("offers").hidden=true; $("cart").classList.remove("open"); }});
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ $("offers").hidden=true; $("hist").hidden=true; $("send").hidden=true; $("present").hidden=true; $("cart").classList.remove("open"); }});
 $("oq").addEventListener("input",offerSearch);
 $("ofType").onchange=()=>{ $("ofValLabel").textContent = $("ofType").value==="prix"?"Prix salon TTC":"Remise (%)"; };
 $("ofCancel").onclick=()=>{ $("oform").hidden=true; ofModel=null; };
@@ -535,6 +754,19 @@ $("syncNote").textContent = "Offres enregistrées sur cet appareil uniquement.";
     if(!window.claude || !claude.use) return;
     const db = await claude.use("db"); if(!db) return;
     const user = await claude.use("user");
+    try{
+      const id = user ? await user.id() : null;
+      if(id){
+        const hd = db.doc("data/users/"+id+"/historique");
+        const snap = await hd.get();
+        const remote = (snap.exists && Array.isArray(snap.data().paniers)) ? snap.data().paniers : [];
+        const byId = {}; [...remote, ...savedCarts].forEach(h=>{ if(!byId[h.id] || byId[h.id].savedAt < h.savedAt) byId[h.id]=h; });
+        const merged = Object.values(byId).sort((a,b)=>b.savedAt-a.savedAt);
+        histDoc = hd; savedCarts = merged; save("salon-savedCarts",savedCarts);
+        if(merged.length !== remote.length || merged.some((h,i)=>!remote[i] || remote[i].savedAt!==h.savedAt)) await hd.set({paniers:merged});
+        renderHistory(); renderSaveState();
+      }
+    }catch(e){ histDoc=null; }
     try{ const ce = user ? await user.canEdit() : null; if(ce===false) canEditOffers=false; }catch(e){}
     offersDoc = db.doc("config/offres");
     const timer=setTimeout(()=>{ $("syncNote").textContent="Les offres partagées ne répondent pas encore. Vérifiez la connexion du salon."; },10000);
