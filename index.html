@@ -130,7 +130,9 @@ details.cat[open]>summary .chev{transform:rotate(90deg)}
 .tot{display:flex;justify-content:space-between;font-size:14px;color:var(--muted)}
 .tot.big{color:var(--ink);font-weight:700;font-size:22px;font-family:var(--f-display)}
 .tot.save{color:var(--ok);font-weight:600}
-.actions{display:flex;gap:8px;margin-top:6px}
+.actions{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-top:6px}
+.actions .btn{grid-column:span 2}
+.actions #reset,.actions #discard{grid-column:span 3}
 .sendgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .sendgrid .btn{justify-content:center;text-decoration:none;color:var(--ink);padding:12px 10px}
 .sendgrid .btn.primary{color:var(--accent-ink);grid-column:1/-1}
@@ -293,7 +295,9 @@ details.cat[open]>summary .chev{transform:rotate(90deg)}
       <div class="actions">
         <button class="btn primary" id="saveCart" type="button">Enregistrer</button>
         <button class="btn" id="openSend" type="button">Envoyer</button>
-        <button class="btn danger" id="reset" type="button">Nouveau</button>
+        <button class="btn" id="openPresentBtn" type="button">Montrer</button>
+        <button class="btn" id="reset" type="button">Nouveau</button>
+        <button class="btn danger" id="discard" type="button">Supprimer</button>
       </div>
     </div>
   </aside>
@@ -473,7 +477,7 @@ function card(m){
     vi = q ? Math.max(0,m.v.findIndex(v=>norm(v.r+" "+v.d).includes(q))) : 0;
   }
   const v = m.v[vi]; const o = offers[v.r]; const hasOffer = m.v.some(x=>offers[x.r]);
-  const net = unitPrice(v.r,"auto"); const disc = net < v.p;
+  const net = (o || m.fixed) ? unitPrice(v.r,"auto") : v.p; const disc = net < v.p;
   const sw = m.v.length>1 || v.d ? `<div class="swatches">${m.v.map((x,i)=>`<button type="button" class="sw" data-m="${m.id}" data-i="${i}" aria-pressed="${i===vi}" title="${esc(x.d||x.k)}" aria-label="${esc(x.d||x.k)}" style="background:${COLORS[x.k]||"#bbb"}"></button>`).join("")}</div>` : "";
   return `<article class="card">
     <div class="meta"><span class="tag ${m.g}">${m.g==="salon"?"Offre salon":m.g==="cbx"?"CBX":m.g==="gold"?"Gold":"Platinum"}</span>${m.new?'<span class="badge new">Nouveau</span>':""}${hasOffer?'<span class="badge offer">Prix particulier</span>':""}</div>
@@ -596,7 +600,8 @@ function renderHistory(){
 }
 function clientMessage(){
   const t=totals(); const out=[];
-  out.push("Bonjour,"); out.push("");
+  const nom=(cart.client||"").trim();
+  out.push(nom?"Bonjour "+nom+",":"Bonjour,"); out.push("");
   out.push("Voici le récapitulatif de votre panier Cybex préparé avec vous sur le salon le "+new Date().toLocaleDateString("fr-FR")+" :"); out.push("");
   for(const l of cart.lines){ const {m,v}=BYREF[l.r]; const u=unitPrice(l.r,l.mode); const tot=r2(u*l.q), full=r2(v.p*l.q);
     out.push(`• ${l.q} × ${m.n}${v.d?" – "+v.d:""} (${refTxt(v)})`);
@@ -631,7 +636,10 @@ function openPresent(){
   $("pLines").innerHTML=cart.lines.map(l=>{ const {m,v}=BYREF[l.r]; const u=unitPrice(l.r,l.mode); const tot=r2(u*l.q), full=r2(v.p*l.q);
     return `<div class="p-line"><div><div class="nm">${l.q>1?l.q+" × ":""}${esc(m.n)}</div><div class="sub">${v.d?esc(v.d)+" · ":""}${m.fixed?"Offre salon":`réf. <span class="mono">${v.r}</span>`}</div></div><div class="lp">${tot<full?`<div class="full num">${fmt(full)}</div>`:""}<div class="net num ${tot<full?"sale":""}" style="font-size:18px">${fmt(tot)}</div></div></div>`; }).join("");
   $("pFull").textContent=fmt(t.full); $("pSave").textContent=fmt(t.save); $("pNet").textContent=fmt(t.net);
-  $("present").hidden=false;
+  $("toast").classList.remove("on");
+  const ok=true;
+  $("present").hidden=false; $("present").querySelector(".sheet").scrollTop=0;
+  return ok;
 }
 function recap(){
   const t=totals(); const out=[];
@@ -695,7 +703,7 @@ $("catalog").addEventListener("click",e=>{
   const a=e.target.closest("[data-add]"); if(a){ addToCart(a.dataset.add); a.classList.add("done"); a.innerHTML="✓ Ajouté"; setTimeout(renderCatalog,700); }
 });
 $("catalog").addEventListener("toggle",e=>{ const d=e.target; if(!d.dataset||!d.dataset.key||FORCED) return; if(d.open) openCats.add(d.dataset.key); else openCats.delete(d.dataset.key); save("salon-open",[...openCats]); },true);
-$("pctSeg").onclick=e=>{const b=e.target.closest("button"); if(!b) return; cart.pct=Number(b.dataset.p); persist(); renderCart(); renderCatalog();};
+$("pctSeg").onclick=e=>{const b=e.target.closest("button"); if(!b) return; cart.pct=Number(b.dataset.p); persist(); renderCart();};
 $("client").oninput=e=>{cart.client=e.target.value; persist();};
 $("saveCart").onclick=()=>saveCurrent();
 $("openHist").onclick=()=>{ $("hq").value=""; renderHistory(); $("hist").hidden=false; };
@@ -727,6 +735,16 @@ $("lnkSms").addEventListener("click",()=>toast("Ouverture des messages…"));
 $("lnkMail").addEventListener("click",e=>{ if(!$("cMail").value.trim()){ e.preventDefault(); toast("Indiquez l'e-mail du client"); $("cMail").focus(); return; } toast("Ouverture de la messagerie…"); });
 $("shareNative").onclick=()=>{ navigator.share({title:"Votre panier Cybex", text:$("msg").value}).catch(err=>{ if(err && err.name!=="AbortError") toast("Partage impossible ici : utilisez Copier le message"); }); };
 $("showClient").onclick=()=>{ $("send").hidden=true; openPresent(); };
+$("openPresentBtn").onclick=openPresent;
+let discardArmed=false;
+$("discard").onclick=()=>{
+  if(!cart.lines.length && !cart.client){ toast("Le panier est déjà vide"); return; }
+  if(!discardArmed){ discardArmed=true; $("discard").textContent="Confirmer"; setTimeout(()=>{discardArmed=false;$("discard").textContent="Supprimer";},3000); return; }
+  discardArmed=false; $("discard").textContent="Supprimer";
+  const wasSaved = !!(cart.id && savedCarts.find(h=>h.id===cart.id));
+  cart={client:"",pct:cart.pct,lines:[]}; save("salon-cart",cart); renderCart();
+  toast(wasSaved ? "Modifications abandonnées · le panier enregistré reste dans Mes paniers" : "Panier supprimé sans être enregistré");
+};
 $("closePresent").onclick=()=>{ $("present").hidden=true; };
 $("copy").onclick=()=>{ if(!cart.lines.length){toast("Le panier est vide");return;} const txt=$("msg").value||clientMessage();
   const fallback=()=>{const ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("Récapitulatif copié");}catch(e){toast("Copie impossible sur cet appareil");}ta.remove();};
