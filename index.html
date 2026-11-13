@@ -398,6 +398,35 @@ const GAMMES = {salon:"Offres salon", platinum:"Cybex Platinum", gold:"Cybex Gol
 const CATS = {salon:"Offres salon", poussette:"Poussettes", siege:"Sièges auto", home:"Home", carrier:"Carriers", accessoires:"Accessoires"};
 const COLORS = {"beige":"#d9c7a7","black":"#1d1d1f","blue":"#3a6fb0","brown":"#7a5235","chrome":"linear-gradient(135deg,#e9ebee,#9ea3aa 50%,#e9ebee)","dark brown":"#4a3222","dark green":"#2f4a3a","dark grey":"#4a4d52","dark natural":"#a08a6a","dark pink":"#b8607a","dark yellow":"#c9a227","green":"#5c8a5a","grey":"#8d9096","khaki":"#7d7a4f","light beige":"#ece2cf","light blue":"#a9c8e6","light brown":"#a9825f","light grey":"#d3d5d8","light natural":"#e3d6bd","light pink":"#f1c6cf","medium blue":"#5b86b8","mid blue":"#5b86b8","mid green":"#6f9a6c","mid grey":"#9a9ca1","multicolor":"conic-gradient(#e05a4f,#e8c547,#5fb37a,#4f8be0,#a35fe0,#e05a4f)","navy":"#23345a","navy blue":"#23345a","none":"repeating-linear-gradient(45deg,#ccc 0 3px,#fff 3px 6px)","red":"#b3332e","rosegold":"linear-gradient(135deg,#f0c9b9,#c98f7c)","silver":"linear-gradient(135deg,#f1f2f4,#b5b8bd)","transparent":"repeating-conic-gradient(#ddd 0 25%,#fff 0 50%) 50%/10px 10px","turquoise":"#3fb2b0","white":"#ffffff","yellow green":"#a8b84a"};
 
+// Vraies couleurs Cybex Platinum (châssis et textiles), d'après les nuanciers
+const DESIGNS = {
+  "champagne gold":"linear-gradient(100deg,#c9ab78 0%,#efe6da 28%,#e3d6c4 50%,#d4bf9c 72%,#eadfce 100%)",
+  "rosegold":"linear-gradient(100deg,#2a1f18 0%,#d9c3b3 26%,#7a5c4d 50%,#9c7a69 70%,#2a1f18 100%)",
+  "rose gold":"linear-gradient(100deg,#2a1f18 0%,#d9c3b3 26%,#7a5c4d 50%,#9c7a69 70%,#2a1f18 100%)",
+  "piano black":"linear-gradient(100deg,#231f20 0%,#231f20 30%,#7d7e81 48%,#5e5f62 60%,#231f20 85%)",
+  "matt black":"linear-gradient(100deg,#231f20 0%,#231f20 30%,#7d7e81 48%,#5e5f62 60%,#231f20 85%)",
+  "chrome":"linear-gradient(100deg,#232323 0%,#f3f3f3 26%,#454545 46%,#a1a1a1 64%,#303030 100%)",
+  "chrome brown":"linear-gradient(100deg,#232323 0%,#f3f3f3 26%,#454545 46%,#a1a1a1 64%,#303030 100%)",
+  "sepia black":"#302c2c", "cozy beige":"#c0a797", "coconut brown":"#5e554c", "city grey":"#aca9a5",
+  "sage green":"#a3a087", "off white":"#f0efed", "peach pink":"#e3c7c0"
+};
+// Sièges auto Platinum gamme S : coloris Style bicolores (détails en cuir) et coloris Confort
+const half = (a,b) => `linear-gradient(90deg,${a} 0 50%,${b} 50% 100%)`;
+const S_STYLE = {
+  "sepia black":"#323132", "amber brown":half("#dacfc5","#48372a"), "misty grey":half("#cfcccc","#323132"),
+  "opal blue":half("#d3dbdd","#26596a"), "quartz pink":half("#ebe0db","#6b3f46"), "jade green":half("#e5ddcf","#84693e"),
+  "off white":half("#eeefed","#323132")
+};
+const S_CONFORT = { "sepia black":"#323132", "cozy beige":"#c1a797" };
+function swatch(x,m){
+  const d=(x.d||"").trim().toLowerCase();
+  if(m && m.g==="platinum" && m.c==="siege"){
+    if(/\bSi? Style\b/.test(m.n) && S_STYLE[d]) return S_STYLE[d];
+    if(/\b(CLOUD|SIRONA|ANORIS|SOLUTION) Si?$/.test(m.n) && S_CONFORT[d]) return S_CONFORT[d];
+  }
+  return DESIGNS[d] || COLORS[x.k] || "#bbb";
+}
+
 // Index
 const BYREF = {};
 DATA.forEach((m,i)=>{ m.id=i; m.v.forEach(v=>{ BYREF[v.r]={m,v}; }); m.idx=norm([m.n,m.s,GAMMES[m.g],CATS[m.c],...m.v.map(v=>v.d+" "+v.r)].join(" ")); });
@@ -480,7 +509,7 @@ function card(m){
   }
   const v = m.v[vi]; const o = offers[v.r]; const hasOffer = m.v.some(x=>offers[x.r]);
   const net = (o || m.fixed) ? unitPrice(v.r,"auto") : v.p; const disc = net < v.p;
-  const sw = m.v.length>1 || v.d ? `<div class="swatches">${m.v.map((x,i)=>`<button type="button" class="sw" data-m="${m.id}" data-i="${i}" aria-pressed="${i===vi}" title="${esc(x.d||x.k)}" aria-label="${esc(x.d||x.k)}" style="background:${COLORS[x.k]||"#bbb"}"></button>`).join("")}</div>` : "";
+  const sw = m.v.length>1 || v.d ? `<div class="swatches">${m.v.map((x,i)=>`<button type="button" class="sw" data-m="${m.id}" data-i="${i}" aria-pressed="${i===vi}" title="${esc(x.d||x.k)}" aria-label="${esc(x.d||x.k)}" style="background:${swatch(x,m)}"></button>`).join("")}</div>` : "";
   return `<article class="card">
     <div class="meta"><span class="tag ${m.g}">${m.g==="salon"?"Offre salon":m.g==="cbx"?"CBX":m.g==="gold"?"Gold":"Platinum"}</span>${m.new?'<span class="badge new">Nouveau</span>':""}${hasOffer?'<span class="badge offer">Prix particulier</span>':""}</div>
     <h3>${esc(m.n)}</h3>
