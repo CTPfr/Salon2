@@ -108,7 +108,11 @@ details.cat[open]>summary .chev{transform:rotate(90deg)}
 .empty{padding:40px 10px;text-align:center;color:var(--muted)}
 
 .cart{background:var(--surface);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0;height:100%}
-.cart-h{padding:16px 18px 12px;padding-right:max(18px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.cart-top{padding:16px 18px 0;padding-right:max(18px,env(safe-area-inset-right,0px));background:var(--surface)}
+.cart-top .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cart-top h2{margin:0;font-family:var(--f-display);font-size:20px}
+.cart-foot{display:none}
+.cart-h{padding:12px 18px 12px;padding-right:max(18px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
 .cart-h .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .cart-h h2{margin:0;font-family:var(--f-display);font-size:20px}
 .cart-h input{width:100%;height:40px;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:0 12px}
@@ -218,7 +222,22 @@ details.cat[open]>summary .chev{transform:rotate(90deg)}
   .sw{width:32px;height:32px}
   .net{font-size:18px}
   .add{height:44px;padding:0 16px}
-  .cart{height:92%;height:92dvh}
+  .cart{height:92%;height:92dvh;display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  .cart-top{position:sticky;top:0;z-index:3;padding-block:12px 10px;border-bottom:1px solid var(--line)}
+  .cart-top h2{font-size:19px}
+  .cart-top .btn{padding:8px 12px;font-size:14px}
+  .cart-h{gap:8px;padding-block:10px 8px;border-bottom:0}
+  .lines{overflow:visible;padding-block:0}
+  .totals{border-top:1px solid var(--line);padding-block:10px 14px;gap:4px}
+  .totals .tot.big,.totals #openPresentBtn{display:none}
+  .tot{font-size:13.5px}
+  .actions{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px}
+  .actions .btn,.actions #reset,.actions #discard,.actions #saveCart,.actions #openSend{grid-column:auto;padding:10px 4px;font-size:13px}
+  .cart-foot{display:flex;align-items:center;gap:12px;position:sticky;bottom:0;z-index:3;background:var(--surface);border-top:1px solid var(--line);padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));box-shadow:0 -6px 18px rgba(20,22,27,.08)}
+  .cf-tot{display:flex;flex-direction:column;min-width:0;flex:1}
+  .cf-lbl{font-size:12px;color:var(--muted);font-weight:600}
+  .cf-net{font-family:var(--f-display);font-weight:700;font-size:21px}
+  .cart-foot .btn.show{background:var(--salon);border-color:var(--salon);color:#fff;font-size:16px;padding:12px 18px;border-radius:12px;flex:none}
   .cart-h,.lines,.totals{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
   .cart-h input{height:44px;font-size:16px}
   .line select{height:36px;font-size:16px;flex:1;min-width:0}
@@ -272,7 +291,7 @@ details.cat[open]>summary .chev{transform:rotate(90deg)}
   </main>
 
   <aside class="cart" id="cart" aria-label="Panier">
-    <div class="cart-h">
+    <div class="cart-top">
       <div class="row">
         <h2>Panier</h2>
         <div style="display:flex;gap:8px">
@@ -280,6 +299,8 @@ details.cat[open]>summary .chev{transform:rotate(90deg)}
           <button class="btn ghost closecart" id="closeCart" type="button" aria-label="Fermer le panier">Fermer</button>
         </div>
       </div>
+    </div>
+    <div class="cart-h">
       <div class="seg" role="group" aria-label="Remise du panier" id="pctSeg">
         <button type="button" data-p="0">0 %</button>
         <button type="button" data-p="10">−10 %</button>
@@ -301,6 +322,10 @@ details.cat[open]>summary .chev{transform:rotate(90deg)}
         <button class="btn" id="reset" type="button">Nouveau</button>
         <button class="btn danger" id="discard" type="button">Supprimer</button>
       </div>
+    </div>
+    <div class="cart-foot">
+      <div class="cf-tot"><span class="cf-lbl">Total remisé</span><span class="num cf-net" id="cfNet">0,00 €</span></div>
+      <button class="btn show" id="cfShow" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>Montrer</button>
     </div>
   </aside>
 </div>
@@ -573,6 +598,7 @@ function renderCart(){
   $("tFull").textContent=fmt(t.full); $("tNet").textContent=fmt(t.net); $("tSave").textContent=fmt(t.save);
   $("mbCount").textContent = n? `Panier (${n})` : "Panier";
   $("mbTotal").textContent = fmt(t.net);
+  $("cfNet").textContent = fmt(t.net);
   renderSaveState();
 }
 function persist(){ cart.dirty = true; save("salon-cart",cart); renderSaveState(); }
@@ -776,6 +802,7 @@ $("shareNative").onclick=()=>{ navigator.share({title:"Votre panier Cybex", text
 $("showClient").onclick=()=>{ $("send").hidden=true; openPresent(); };
 $("openPresentBtn").onclick=openPresent;
 $("mShow").onclick=openPresent;
+$("cfShow").onclick=openPresent;
 let discardArmed=false;
 $("discard").onclick=()=>{
   if(!cart.lines.length && !cart.client){ toast("Le panier est déjà vide"); return; }
